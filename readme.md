@@ -1,1 +1,1 @@
-rocket: rv64imafdqc_h_zaamo_zba_zbb_zbc_zbs_zfa_zfh_zfhmin_zicond_zicsr_zifencei
+A riscv fuzz test tool, still in development.
