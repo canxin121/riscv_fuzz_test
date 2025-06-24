@@ -44,11 +44,11 @@ impl DebugExecutionOutputDiffDiff {
 
 impl fmt::Display for DebugExecutionOutputDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 调试执行输出差异变化报告")?;
+        writeln!(f, "# Debug Execution Output Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "调试执行输出差异无变化")?;
+            writeln!(f, "No changes in debug execution output differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -56,52 +56,52 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
         let sim1_name = self.get_sim1_name();
         let sim2_name = self.get_sim2_name();
 
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        writeln!(f, "## 变化汇总")?;
+        writeln!(f, "## Change Summary")?;
         writeln!(f)?;
-        writeln!(f, "| 变化项目 | 数量 |")?;
-        writeln!(f, "|----------|------|")?;
+        writeln!(f, "| Change Item | Count |")?;
+        writeln!(f, "|-------------|-------|")?;
 
         let mut change_count = 0;
 
         if self.register_dumps_count_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 有效寄存器转储数 | 变化 |")?;
+            writeln!(f, "| Valid Register Dump Count | Changed |")?;
         }
 
         if self.differing_register_dumps_changed.is_some() {
             change_count += 1;
-            writeln!(f, "| 寄存器内容差异 | 变化 |")?;
+            writeln!(f, "| Register Content Differences | Changed |")?;
         }
 
         if self.total_dumps_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 总转储标记数 | 变化 |")?;
+            writeln!(f, "| Total Dump Marker Count | Changed |")?;
         }
 
         if change_count == 0 {
-            writeln!(f, "| - | 无变化 |")?;
+            writeln!(f, "| - | No Changes |")?;
         }
         writeln!(f)?;
 
-        writeln!(f, "## 详细变化分析")?;
+        writeln!(f, "## Detailed Change Analysis")?;
         writeln!(f)?;
 
         if let Some(ch) = &self.register_dumps_count_changed_diff {
-            writeln!(f, "### 有效寄存器转储数差异变化")?;
+            writeln!(f, "### Valid Register Dump Count Difference Changes")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "| 时期 | {} | {} | 总差异 | 效率变化 |",
+                "| Period | {} | {} | Total Difference | Efficiency Change |",
                 sim1_name, sim2_name
             )?;
-            writeln!(f, "|------|------------|------------|--------|----------|")?;
+            writeln!(f, "|--------|------------|------------|------------------|-------------------|")?;
 
             match (&ch.old, &ch.new) {
                 (Some((old_count1, old_count2)), Some((new_count1, new_count2))) => {
-                    // 如果有总转储数据，计算效率
+                    // If total dump data exists, calculate efficiency
                     let efficiency_info = if let Some(total_ch) = &self.total_dumps_changed_diff {
                         match (&total_ch.old, &total_ch.new) {
                             (Some((old_total1, old_total2)), Some((new_total1, new_total2))) => {
@@ -130,15 +130,15 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
                                     old_eff1, new_eff1, old_eff2, new_eff2
                                 )
                             }
-                            _ => "无法计算".to_string(),
+                            _ => "Unable to calculate".to_string(),
                         }
                     } else {
-                        "无总数数据".to_string()
+                        "No total count data".to_string()
                     };
 
                     writeln!(
                         f,
-                        "| 变化前 | {} 个 | {} 个 | {} 个 | {} |",
+                        "| Before | {} items | {} items | {} items | {} |",
                         old_count1,
                         old_count2,
                         (*old_count2 as i64 - *old_count1 as i64).abs(),
@@ -146,7 +146,7 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
                     )?;
                     writeln!(
                         f,
-                        "| 变化后 | {} 个 | {} 个 | {} 个 | {} |",
+                        "| After | {} items | {} items | {} items | {} |",
                         new_count1,
                         new_count2,
                         (*new_count2 as i64 - *new_count1 as i64).abs(),
@@ -154,29 +154,29 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
                     )?;
                 }
                 _ => {
-                    writeln!(f, "| 变化前 | {:?} | - | - | - |", ch.old)?;
-                    writeln!(f, "| 变化后 | {:?} | - | - | - |", ch.new)?;
+                    writeln!(f, "| Before | {:?} | - | - | - |", ch.old)?;
+                    writeln!(f, "| After | {:?} | - | - | - |", ch.new)?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.differing_register_dumps_changed {
-            writeln!(f, "### 寄存器内容差异变化")?;
+            writeln!(f, "### Register Content Difference Changes")?;
             writeln!(f)?;
 
-            writeln!(f, "| 指标 | 变化前 | 变化后 | 净变化 | 变化趋势 |")?;
-            writeln!(f, "|------|--------|--------|--------|----------|")?;
+            writeln!(f, "| Metric | Before | After | Net Change | Change Trend |")?;
+            writeln!(f, "|--------|--------|-------|------------|--------------|")?;
 
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => format!("增加 {} 个差异", new - old),
-                (old, new) if new < old => format!("减少 {} 个差异", old - new),
-                _ => "保持不变".to_string(),
+                (old, new) if new > old => format!("Increased by {} differences", new - old),
+                (old, new) if new < old => format!("Decreased by {} differences", old - new),
+                _ => "Remained unchanged".to_string(),
             };
 
             writeln!(
                 f,
-                "| 差异转储数量 | {} 个 | {} 个 | {:+} | {} |",
+                "| Differing Dump Count | {} items | {} items | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -184,51 +184,51 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
             )?;
 
             let status_old = if ch.old.is_empty() {
-                "无差异"
+                "No differences"
             } else {
-                "存在差异"
+                "Has differences"
             };
             let status_new = if ch.new.is_empty() {
-                "无差异"
+                "No differences"
             } else {
-                "存在差异"
+                "Has differences"
             };
 
             writeln!(
                 f,
-                "| 差异状态 | {} | {} | - | {} |",
+                "| Difference Status | {} | {} | - | {} |",
                 status_old,
                 status_new,
                 if ch.old.is_empty() && !ch.new.is_empty() {
-                    "新增差异"
+                    "New differences appeared"
                 } else if !ch.old.is_empty() && ch.new.is_empty() {
-                    "消除差异"
+                    "Differences resolved"
                 } else {
-                    "状态延续"
+                    "Status continued"
                 }
             )?;
             writeln!(f)?;
 
             if !ch.old.is_empty() || !ch.new.is_empty() {
-                writeln!(f, "#### 差异转储索引对比")?;
+                writeln!(f, "#### Differing Dump Index Comparison")?;
                 writeln!(f)?;
-                writeln!(f, "| 时期 | 转储索引列表 |")?;
-                writeln!(f, "|------|--------------|")?;
+                writeln!(f, "| Period | Dump Index List |")?;
+                writeln!(f, "|--------|-----------------|")?;
 
                 if !ch.old.is_empty() {
                     let old_indices: Vec<String> =
-                        ch.old.iter().map(|(idx, _)| idx.to_string()).collect();
-                    writeln!(f, "| 变化前 | {} |", old_indices.join(", "))?;
+                        ch.old.iter().map(|(idx, _)| (idx + 1).to_string()).collect();
+                    writeln!(f, "| Before | {} |", old_indices.join(", "))?;
                 } else {
-                    writeln!(f, "| 变化前 | 无差异转储 |")?;
+                    writeln!(f, "| Before | No differing dumps |")?;
                 }
 
                 if !ch.new.is_empty() {
                     let new_indices: Vec<String> =
-                        ch.new.iter().map(|(idx, _)| idx.to_string()).collect();
-                    writeln!(f, "| 变化后 | {} |", new_indices.join(", "))?;
+                        ch.new.iter().map(|(idx, _)| (idx + 1).to_string()).collect();
+                    writeln!(f, "| After | {} |", new_indices.join(", "))?;
                 } else {
-                    writeln!(f, "| 变化后 | 无差异转储 |")?;
+                    writeln!(f, "| After | No differing dumps |")?;
                 }
                 writeln!(f)?;
             }
@@ -237,7 +237,7 @@ impl fmt::Display for DebugExecutionOutputDiffDiff {
         writeln!(f, "---")?;
         writeln!(
             f,
-            "调试差异变化报告生成时间: {}",
+            "Debug diff change report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 

@@ -108,7 +108,8 @@ where
         cycle_count: false,
         max_cycles: None,
         log_file: build_dir.as_ref().join("rocket_execution_trace.log"),
-        emulator_path: "emulators/rocket_emulator".to_string(),
+        emulator_path: std::env::var("ROCKET_EMULATOR_PATH")
+            .unwrap_or_else(|_| "emulators/rocket_emulator".to_string()),
     };
 
     let rocket_output_path = build_dir.as_ref().join("rocket_output.json");
@@ -209,7 +210,8 @@ pub fn run_emulator(
                 cycle_count: false, // Default
                 max_cycles: None, // Default
                 log_file: raw_output_target_path.clone(),
-                emulator_path: "emulators/rocket_emulator".to_string(),
+                emulator_path: std::env::var("ROCKET_EMULATOR_PATH")
+                    .unwrap_or_else(|_| "emulators/rocket_emulator".to_string()),
             };
             rocket::rocket_run_program(&config, executable_file)?;
         }
@@ -323,7 +325,8 @@ where
                 cycle_count: false,
                 max_cycles: None,
                 log_file: build_dir.as_ref().join("rocket_execution_trace.log"),
-                emulator_path: "emulators/rocket_emulator".to_string(),
+                emulator_path: std::env::var("ROCKET_EMULATOR_PATH")
+                    .unwrap_or_else(|_| "emulators/rocket_emulator".to_string()),
             };
             rocket_run_programs_and_parse::<T, P>(&config, executable_file, dump_file)?
         }

@@ -1,26 +1,26 @@
-/// 异常转储配置
+/// Exception dump configuration
 #[derive(Debug, Clone)]
 pub enum DumpException {
-    /// 转储所有异常
+    /// Dump all exceptions
     All,
-    /// 转储指定MEPC地址的异常
+    /// Dump exceptions at specified MEPC addresses
     OnMepcMatch(Vec<u64>),
 }
 
-/// 寄存器转储配置
+/// Register dump configuration
 #[derive(Debug, Clone)]
 pub enum DumpRegister {
-    /// 转储所有寄存器
+    /// Dump all registers
     All,
-    /// 转储指定的GPR寄存器列表 (寄存器编号)
+    /// Dump specified GPR register list (register numbers)
     Gpr(Vec<u32>),
-    /// 转储指定的FPR寄存器列表 (寄存器编号)
+    /// Dump specified FPR register list (register numbers)
     Fpr(Vec<u32>),
-    /// 转储指定的GPR和FPR寄存器
+    /// Dump specified GPR and FPR registers
     GprAndFpr { gpr: Vec<u32>, fpr: Vec<u32> },
 }
 
-/// 生成完整的RISC-V汇编模板（包含异常转储和寄存器转储）
+/// Generate complete RISC-V assembly template (including exception dump and register dump)
 pub fn generate_standard_asm(user_code: &str) -> String {
     generate_asm(user_code, Some(DumpException::All), Some(DumpRegister::All))
 }
@@ -29,7 +29,7 @@ pub fn generate_minimal_asm(user_code: &str) -> String {
     generate_asm(user_code, None, None)
 }
 
-/// 生成自定义RISC-V汇编模板
+/// Generate custom RISC-V assembly template
 pub fn generate_asm(
     user_code: &str, 
     dump_exception: Option<DumpException>, 
@@ -46,7 +46,7 @@ pub fn generate_asm(
 
 fn get_macro_definitions() -> &'static str {
     r#"# ============================================================================
-# 宏定义 - Macro Definitions
+# Macro Definitions
 # ============================================================================
 
 # ----------------------------------------------------------------------------
@@ -95,13 +95,12 @@ wait_htif_print_\@:
 
 # ----------------------------------------------------------------------------
 # .macro DUMP_ALL_REGS_RAW 
-# [MODIFIED] - 移除了可选和可能引起问题的CSRs
 # ----------------------------------------------------------------------------
 .macro DUMP_ALL_REGS_RAW
     csrw mscratch, t6
     la t6, register_dump_buffer
 
-    # 转储所有通用寄存器 (x0-x31)
+    # Dump all general-purpose registers (x0-x31)
     sd  x0,    0(t6); sd  x1,    8(t6); sd  x2,   16(t6); sd  x3,   24(t6)
     sd  x4,   32(t6); sd  x5,   40(t6); sd  x6,   48(t6); sd  x7,   56(t6)
     sd  x8,   64(t6); sd  x9,   72(t6); sd x10,   80(t6); sd x11,   88(t6)
@@ -111,47 +110,47 @@ wait_htif_print_\@:
     sd x24,  192(t6); sd x25,  200(t6); sd x26,  208(t6); sd x27,  216(t6)
     sd x28,  224(t6); sd x29,  232(t6); sd x30,  240(t6)
     csrr t5, mscratch
-    sd t5, 248(t6)  # x31 (t6) 的原始值
+    sd t5, 248(t6)  # x31 (t6) original value
 
-    # 转储核心的机器模式 CSR 寄存器
-    csrr t0, mstatus;     sd t0, 256(t6) # 机器状态
-    csrr t0, misa;        sd t0, 264(t6) # ISA 和扩展
-    csrr t0, medeleg;     sd t0, 272(t6) # 机器异常委托
-    csrr t0, mideleg;     sd t0, 280(t6) # 机器中断委托
-    csrr t0, mie;         sd t0, 288(t6) # 机器中断使能
-    csrr t0, mtvec;       sd t0, 296(t6) # 机器陷阱向量基地址
-    csrr t0, mcounteren;  sd t0, 304(t6) # 机器计数器使能
+    # Dump core machine mode CSR registers
+    csrr t0, mstatus;     sd t0, 256(t6) # Machine status
+    csrr t0, misa;        sd t0, 264(t6) # ISA and extensions
+    csrr t0, medeleg;     sd t0, 272(t6) # Machine exception delegation
+    csrr t0, mideleg;     sd t0, 280(t6) # Machine interrupt delegation
+    csrr t0, mie;         sd t0, 288(t6) # Machine interrupt enable
+    csrr t0, mtvec;       sd t0, 296(t6) # Machine trap vector base address
+    csrr t0, mcounteren;  sd t0, 304(t6) # Machine counter enable
     
-    # 机器陷阱处理 CSRs
-    csrr t0, mscratch;    sd t0, 312(t6) # 机器临时寄存器
-    csrr t0, mepc;        sd t0, 320(t6) # 机器异常程序计数器
-    csrr t0, mcause;      sd t0, 328(t6) # 机器陷阱原因
-    csrr t0, mtval;       sd t0, 336(t6) # 机器坏地址或指令
-    csrr t0, mip;         sd t0, 344(t6) # 机器中断挂起
+    # Machine trap handling CSRs
+    csrr t0, mscratch;    sd t0, 312(t6) # Machine scratch register
+    csrr t0, mepc;        sd t0, 320(t6) # Machine exception program counter
+    csrr t0, mcause;      sd t0, 328(t6) # Machine trap cause
+    csrr t0, mtval;       sd t0, 336(t6) # Machine bad address or instruction
+    csrr t0, mip;         sd t0, 344(t6) # Machine interrupt pending
 
-    # 机器计数器/计时器 CSRs
-    csrr t0, mcycle;      sd t0, 352(t6) # 机器周期计数器
-    csrr t0, minstret;    sd t0, 360(t6) # 机器指令退役计数器
+    # Machine counter/timer CSRs
+    csrr t0, mcycle;      sd t0, 352(t6) # Machine cycle counter
+    csrr t0, minstret;    sd t0, 360(t6) # Machine instructions retired counter
     
-    # 机器信息 CSRs
-    csrr t0, mvendorid;   sd t0, 368(t6) # 厂商ID
-    csrr t0, marchid;     sd t0, 376(t6) # 架构ID
-    csrr t0, mimpid;      sd t0, 384(t6) # 实现ID
-    csrr t0, mhartid;     sd t0, 392(t6) # 硬件线程ID
+    # Machine information CSRs
+    csrr t0, mvendorid;   sd t0, 368(t6) # Vendor ID
+    csrr t0, marchid;     sd t0, 376(t6) # Architecture ID
+    csrr t0, mimpid;      sd t0, 384(t6) # Implementation ID
+    csrr t0, mhartid;     sd t0, 392(t6) # Hardware thread ID
 
     .set DUMP_SIZE_NO_FP, 400
 
 #if __riscv_flen > 0
-    # F/D 扩展存在: 转储浮点寄存器和状态
+    # F/D extension present: dump floating-point registers and status
     csrr t0, mstatus
     li   t1, (1 << 13) # MSTATUS_FS_INITIAL
     or   t1, t0, t1
     csrw mstatus, t1
 
-    # 浮点控制和状态寄存器
+    # Floating-point control and status register
     csrr t1, fcsr;      sd t1, 400(t6)
     
-    # 浮点寄存器 (f0-f31)
+    # Floating-point registers (f0-f31)
     fsd f0,   408(t6); fsd f1,   416(t6); fsd f2,   424(t6); fsd f3,   432(t6)
     fsd f4,   440(t6); fsd f5,   448(t6); fsd f6,   456(t6); fsd f7,   464(t6)
     fsd f8,   472(t6); fsd f9,   480(t6); fsd f10,  488(t6); fsd f11,  496(t6)
@@ -187,29 +186,29 @@ wait_htif_print_\@:
 # .macro DUMP_GPR_RAW / DUMP_FPR_RAW
 # ----------------------------------------------------------------------------
 .macro DUMP_GPR_RAW register, register_index
-    # 准备数据包: [ 8字节前缀 | 8字节索引 | 8字节值 ]
+    # Prepare data packet: [ 8-byte prefix | 8-byte index | 8-byte value ]
     la   t0, single_reg_dump_buffer
     la   t1, single_reg_dump_prefix_gpr
     ld   t1, 0(t1)
-    sd   t1, 0(t0)                  # 存入GPR前缀
+    sd   t1, 0(t0)                  # Store GPR prefix
     li   t1, \register_index
-    sd   t1, 8(t0)                  # 存入寄存器索引
-    sd   \register, 16(t0)          # 存入寄存器值
-    # 通过HTIF发送数据包
+    sd   t1, 8(t0)                  # Store register index
+    sd   \register, 16(t0)          # Store register value
+    # Send data packet via HTIF
     HTIF_PRINT_RAW single_reg_dump_buffer, 24
 .endm
 
 #if __riscv_flen > 0
 .macro DUMP_FPR_RAW register, register_index
-    # 准备数据包: [ 8字节前缀 | 8字节索引 | 8字节值 ]
+    # Prepare data packet: [ 8-byte prefix | 8-byte index | 8-byte value ]
     la   t0, single_reg_dump_buffer
     la   t1, single_reg_dump_prefix_fpr
     ld   t1, 0(t1)
-    sd   t1, 0(t0)                  # 存入FPR前缀
+    sd   t1, 0(t0)                  # Store FPR prefix
     li   t1, \register_index
-    sd   t1, 8(t0)                  # 存入寄存器索引
-    fsd  \register, 16(t0)          # 存入寄存器值 (使用fsd)
-    # 通过HTIF发送数据包
+    sd   t1, 8(t0)                  # Store register index
+    fsd  \register, 16(t0)          # Store register value (using fsd)
+    # Send data packet via HTIF
     HTIF_PRINT_RAW single_reg_dump_buffer, 24
 .endm
 #endif
@@ -217,12 +216,12 @@ wait_htif_print_\@:
 # ----------------------------------------------------------------------------
 # .macro DUMP_GPR / DUMP_FPR
 # ----------------------------------------------------------------------------
-# 解释: 这些是用户友好宏，封装了暂存寄存器的保存和恢复。
-# 参数:
-#   - temp_save_area: 用于保存/恢复 t0-t6 寄存器的临时内存区标签
-#   - register:       要转储的寄存器名称 (例如 x1, ra, f0, ft0)
-#   - register_index: 寄存器的数字索引 (例如 x1 -> 1, f1 -> 1)
-# 注意: 由于汇编宏的限制，您需要手动提供寄存器的数字索引。
+# Description: These are user-friendly macros that encapsulate saving and restoring temporary registers.
+# Parameters:
+#   - temp_save_area: label for temporary memory area to save/restore t0-t6 registers
+#   - register:       register name to dump (e.g. x1, ra, f0, ft0)
+#   - register_index: numeric index of the register (e.g. x1 -> 1, f1 -> 1)
+# Note: Due to assembly macro limitations, you need to manually provide the numeric index of the register.
 
 .macro DUMP_GPR temp_save_area, register, register_index
     SAVE_T_REGS \temp_save_area
@@ -233,7 +232,7 @@ wait_htif_print_\@:
 #if __riscv_flen > 0
 .macro DUMP_FPR temp_save_area, register, register_index
     SAVE_T_REGS \temp_save_area
-    # 临时打开浮点单元以访问FPR
+    # Temporarily enable floating-point unit to access FPR
     csrr t2, mstatus
     li   t3, (1 << 13) # MSTATUS_FS_INITIAL
     or   t3, t2, t3
@@ -241,7 +240,7 @@ wait_htif_print_\@:
     
     DUMP_FPR_RAW \register, \register_index
     
-    # 恢复 mstatus
+    # Restore mstatus
     csrw mstatus, t2
     RESTORE_T_REGS \temp_save_area
 .endm
@@ -264,20 +263,20 @@ wait_htif_print_\@:
 # ----------------------------------------------------------------------------
 # .macro DUMP_EXCEPTION_CSRS_RAW_ON_MEPC_MATCH
 # ----------------------------------------------------------------------------
-# 解释: 此宏仅在 mepc 寄存器的值与指定的 target_mepc 相等时，
-#       才执行寄存器状态转储。
-# 参数:
-#   - target_mepc: 您希望触发转储的、确切的指令地址（一个立即数）
+# Description: This macro only executes register state dump when the value of the mepc register
+#              equals the specified target_mepc.
+# Parameters:
+#   - target_mepc: The exact instruction address where you want to trigger the dump (an immediate value)
 
 .macro DUMP_EXCEPTION_CSRS_RAW_ON_MEPC_MATCH target_mepc
-    # 使用 t4, t5 作为临时寄存器 (在 SAVE_T_REGS 的保护范围内)
+    # Use t4, t5 as temporary registers (within SAVE_T_REGS protection scope)
     csrr t4, mepc
     li   t5, \target_mepc
 
-    # 如果 mepc 和目标地址不匹配，则直接跳过转储逻辑
+    # If mepc and target address don't match, skip dump logic directly
     bne  t4, t5, .L_skip_dump_\@
 
-    # mepc 匹配，执行完整的状态转储
+    # mepc matches, execute complete state dump
     DUMP_EXCEPTION_CSRS_RAW
 
 .L_skip_dump_\@:
@@ -295,13 +294,13 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
 # .macro RESET_MACHINE_STATE
 # ----------------------------------------------------------------------------
 .macro RESET_MACHINE_STATE
-    # 临时寄存器
+    # Temporary registers
     li t0, 0
     li t1, 0
 
-    # 步骤 1: M-Mode CSRs
+    # Step 1: M-Mode CSRs
     # ---------------------------------
-    # 陷阱处理
+    # Trap handling
     csrwi mstatus, 0
     csrwi mie, 0
     csrwi mip, 0
@@ -310,29 +309,29 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     csrwi mtval, 0
     csrwi mscratch, 0
     # csrwi mtvec, 0
-    # 委托
+    # Delegation
     csrwi medeleg, 0
     csrwi mideleg, 0
 
-    # 物理内存保护 (PMP) 相关 (禁用所有 PMP 区域以提供完全访问权限)
-    # 清除前16个 PMP 地址寄存器 (这部分是安全的，因为未实现的寄存器读取为0，写入被忽略)
+    # Physical Memory Protection (PMP) related (disable all PMP regions to provide full access)
+    # Clear first 16 PMP address registers (this is safe as unimplemented registers read as 0, writes are ignored)
     csrw pmpaddr0, x0; csrw pmpaddr1, x0; csrw pmpaddr2, x0; csrw pmpaddr3, x0
     csrw pmpaddr4, x0; csrw pmpaddr5, x0; csrw pmpaddr6, x0; csrw pmpaddr7, x0
     csrw pmpaddr8, x0; csrw pmpaddr9, x0; csrw pmpaddr10, x0; csrw pmpaddr11, x0
     csrw pmpaddr12, x0; csrw pmpaddr13, x0; csrw pmpaddr14, x0; csrw pmpaddr15, x0
-    # 根据架构宽度清除 PMP 配置寄存器
-    # RV64中pmpcfg寄存器为偶数编号，RV32中为连续编号
+    # Clear PMP configuration registers according to architecture width
+    # In RV64 pmpcfg registers are even-numbered, in RV32 they are consecutive
     #if __riscv_xlen == 64
-    csrw pmpcfg0, x0 # 覆盖 pmp0-7 的配置
-    csrw pmpcfg2, x0 # 覆盖 pmp8-15 的配置
-    #else # 默认为 __riscv_xlen == 32
-    csrw pmpcfg0, x0 # 覆盖 pmp0-3 的配置
-    csrw pmpcfg1, x0 # 覆盖 pmp4-7 的配置
-    csrw pmpcfg2, x0 # 覆盖 pmp8-11 的配置
-    csrw pmpcfg3, x0 # 覆盖 pmp12-15 的配置
+    csrw pmpcfg0, x0 # Covers pmp0-7 configuration
+    csrw pmpcfg2, x0 # Covers pmp8-15 configuration
+    #else # Default to __riscv_xlen == 32
+    csrw pmpcfg0, x0 # Covers pmp0-3 configuration
+    csrw pmpcfg1, x0 # Covers pmp4-7 configuration
+    csrw pmpcfg2, x0 # Covers pmp8-11 configuration
+    csrw pmpcfg3, x0 # Covers pmp12-15 configuration
     #endif 
 
-    # 性能计数器 (HPM)
+    # Performance counters (HPM)
     csrwi mcounteren, 0
     csrwi scounteren, 0
     csrwi mcountinhibit, 0
@@ -366,18 +365,18 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     csrw mhpmcounter29, t0; csrw mhpmevent29, t0
     csrw mhpmcounter30, t0; csrw mhpmevent30, t0
     csrw mhpmcounter31, t0; csrw mhpmevent31, t0
-    # 触发器
+    # Triggers
     csrwi tselect, 0; csrwi tdata1, 0; csrwi tdata2, 0
     csrwi tselect, 1; csrwi tdata1, 0; csrwi tdata2, 0
     csrwi tselect, 0
     
-    # 步骤 2: S-Mode & U-Mode CSRs
+    # Step 2: S-Mode & U-Mode CSRs
     # ---------------------------------
     csrwi sstatus, 0; csrwi sie, 0; csrwi sip, 0
     csrwi sepc, 0; csrwi scause, 0; csrwi stval, 0
     csrwi sscratch, 0; csrwi stvec, 0; csrwi satp, 0
 
-    # 步骤 3: 浮点扩展 (F/D)
+    # Step 3: Floating-point extension (F/D)
     # ---------------------------------
 #if __riscv_flen > 0
     csrr t0, mstatus
@@ -395,7 +394,7 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     fmv.d.x f28, x0; fmv.d.x f29, x0; fmv.d.x f30, x0; fmv.d.x f31, x0
 #endif
 
-    # 步骤 4: 向量扩展 (V)
+    # Step 4: Vector extension (V)
     # ---------------------------------
 #if defined(__riscv_v_intrinsic)
     csrr t0, mstatus
@@ -427,7 +426,7 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     csrw vtype, t0
 #endif
 
-    # 步骤 5: 虚拟机扩展 (H)
+    # Step 5: Hypervisor extension (H)
     # ---------------------------------
     csrwi hstatus, 0; csrwi hedeleg, 0; csrwi hideleg, 0
     csrwi hie, 0; csrwi hip, 0
@@ -442,7 +441,7 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     csrwi vstvec, 0; csrwi vsscratch, 0; csrwi vsepc, 0
     csrwi vscause, 0; csrwi vstval, 0; csrwi vsatp, 0
 
-    # 步骤 6: 通用寄存器 (GPRs)
+    # Step 6: General-purpose registers (GPRs)
     # ---------------------------------
     mv x1,  zero; mv x2,  zero; mv x3,  zero; mv x4,  zero
     mv x5,  zero; mv x6,  zero; mv x7,  zero; mv x8,  zero
@@ -461,7 +460,7 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
 fn get_data_sections() -> String {
     String::from(
         r#"# ============================================================================
-# 内存与数据区定义
+# Memory and Data Section Definitions
 # ============================================================================
 .section .bss
 .align 4
@@ -473,9 +472,9 @@ single_reg_dump_buffer:     .zero 24
 .section .data
 .align 6
 htif_communication_buffer: .zero 64
-# 寄存器转储前缀标识符
-# 魔数编码: 0xFEEDC0DE + 类型标识
-# 类型标识: 0x1000 = 整数寄存器 + 浮点寄存器, 0x2000 = 仅整数寄存器
+# Register dump prefix identifiers
+# Magic number encoding: 0xFEEDC0DE + type identifier
+# Type identifier: 0x1000 = integer registers + floating-point registers, 0x2000 = integer registers only
 #if __riscv_flen > 0
 full_reg_dump_prefix_with_fp:
     .dword 0xFEEDC0DE1000
@@ -486,7 +485,7 @@ full_reg_dump_prefix_no_fp:
     .dword 0xFEEDC0DE2000
 #endif
 
-# 单个寄存器转储前缀标识符
+# Single register dump prefix identifiers
 single_reg_dump_prefix_gpr:
     .dword 0xFEEDC0DE1001
 
@@ -495,9 +494,9 @@ single_reg_dump_prefix_fpr:
     .dword 0xFEEDC0DE1002
 #endif
 
-# 异常CSR转储前缀标识符
-# 魔数编码: 0xBADC0DE + 类型标识
-# 类型标识: 0x1000 = 异常转储
+# Exception CSR dump prefix identifier
+# Magic number encoding: 0xBADC0DE + type identifier
+# Type identifier: 0x1000 = exception dump
 exc_csr_dump_prefix:
     .dword 0xBADC0DE1000
 
@@ -518,10 +517,10 @@ fromhost: .dword 0
 fn get_exception_handler(dump_config: &Option<DumpException>) -> String {
     let mut handler = String::from(
         r#"# ============================================================================
-# 异常处理程序
+# Exception Handler
 # ============================================================================
 exception_handler:
-    # 一次性保存寄存器，避免嵌套
+    # Save registers once to avoid nesting
     SAVE_T_REGS framework_temp_save_area
     
 "#,
@@ -530,7 +529,7 @@ exception_handler:
     match dump_config {
         Some(DumpException::All) => {
             handler.push_str(
-                r#"    # 转储异常CSR信息 - 使用RAW版本避免额外的保存/恢复
+                r#"    # Dump exception CSR information - use RAW version to avoid additional save/restore
     DUMP_EXCEPTION_CSRS_RAW
 "#,
             );
@@ -538,7 +537,7 @@ exception_handler:
         Some(DumpException::OnMepcMatch(mepc_list)) => {
             for &mepc in mepc_list {
                 handler.push_str(&format!(
-                    r#"    # 转储指定MEPC地址(0x{:x})的异常信息
+                    r#"    # Dump exception information for specified MEPC address (0x{:x})
     DUMP_EXCEPTION_CSRS_RAW_ON_MEPC_MATCH 0x{:x}
 "#,
                     mepc, mepc
@@ -546,26 +545,26 @@ exception_handler:
             }
         }
         None => {
-            // 不转储异常信息
+            // Don't dump exception information
         }
     }
 
     handler.push_str(
-        r#"    # 获取异常指令地址
+        r#"    # Get exception instruction address
     csrr t0, mepc
     
-    # 读取异常指令的内容来判断长度
+    # Read exception instruction content to determine length
     lhu t1, 0(t0)
     andi t2, t1, 0x3
     li t3, 0x3
     bne t2, t3, compressed_inst
     
-    # 标准指令(4字节)
+    # Standard instruction (4 bytes)
     addi t0, t0, 4
     j update_mepc
     
 compressed_inst:
-    # 压缩指令(2字节)
+    # Compressed instruction (2 bytes)
     addi t0, t0, 2
     
 update_mepc:
@@ -574,7 +573,7 @@ update_mepc:
     csrwi mtval, 0
     csrwi mip, 0
 
-    # 一次性恢复寄存器
+    # Restore registers once
     RESTORE_T_REGS framework_temp_save_area
     mret
 
@@ -626,7 +625,7 @@ fn get_dump_registers_code(dump_config: &DumpRegister) -> String {
         DumpRegister::GprAndFpr { gpr, fpr } => {
             let mut code = String::new();
             
-            // 转储GPR寄存器
+            // Dump GPR registers
             for &reg_idx in gpr {
                 code.push_str(&format!(
                     r#"
@@ -636,7 +635,7 @@ fn get_dump_registers_code(dump_config: &DumpRegister) -> String {
                 ));
             }
             
-            // 转储FPR寄存器
+            // Dump FPR registers
             if !fpr.is_empty() {
                 code.push_str(
                     r#"
@@ -664,7 +663,7 @@ fn get_dump_registers_code(dump_config: &DumpRegister) -> String {
 fn get_main_program(user_code: &str, dump_config: &Option<DumpRegister>) -> String {
     let mut program = format!(
         r#"# ============================================================================
-# 程序入口与执行
+# Program Entry and Execution
 # ============================================================================
 _start:
 
@@ -714,7 +713,7 @@ mod tests {
         let minimal_template = generate_minimal_asm(user_code);
         std::fs::write("minimal_template.S", &minimal_template).unwrap();
         
-        // 测试自定义配置
+        // Test custom configuration
         let custom_template = generate_asm(
             user_code,
             Some(DumpException::OnMepcMatch(vec![0x1000, 0x2000])),

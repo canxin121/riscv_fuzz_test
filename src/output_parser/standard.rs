@@ -11,30 +11,30 @@ use crate::{
     },
 };
 
-/// 转换统计信息
+/// Conversion statistics
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConversionStats {
-    /// 原始异常转储数量
+    /// Original exception dump count
     pub original_exception_count: usize,
-    /// 原始寄存器转储数量
+    /// Original register dump count
     pub original_register_count: usize,
-    /// 转换是否成功
+    /// Conversion success status
     pub conversion_successful: bool,
-    /// 转换警告信息
+    /// Conversion warning messages
     pub warnings: Vec<String>,
 }
 
-/// 标准化的执行输出结构
-/// 包含异常转储和单个寄存器转储
+/// Standardized execution output structure
+/// Includes exception dumps and a single register dump
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StandardExecutionOutput {
-    /// 模拟器类型
+    /// Emulator type
     pub emulator_type: EmulatorType,
-    /// 异常转储列表
+    /// Exception dump list
     pub exceptions: Vec<ExceptionDump>,
-    /// 寄存器转储（通常只有一个）
+    /// Register dump (usually only one)
     pub register_dump: Option<RegistersDump>,
-    /// 转换过程中的统计信息
+    /// Statistics information during conversion
     pub conversion_stats: ConversionStats,
 }
 
@@ -57,46 +57,46 @@ impl Default for StandardExecutionOutput {
 // Implement fmt::Display for StandardExecutionOutput
 impl std::fmt::Display for StandardExecutionOutput {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        writeln!(f, "# 🎯 RISC-V 标准执行输出")?;
+        writeln!(f, "# 🎯 RISC-V Standard Execution Output")?;
         writeln!(f)?;
-        writeln!(f, "**模拟器类型:** `{}`", self.emulator_type)?;
+        writeln!(f, "**Emulator Type:** `{}`", self.emulator_type)?;
         writeln!(f)?;
 
-        // 基本信息表格
-        writeln!(f, "## 📊 基本信息")?;
+        // Basic information table
+        writeln!(f, "## 📊 Basic Information")?;
         writeln!(f)?;
-        writeln!(f, "| 项目 | 数值 |")?;
-        writeln!(f, "|------|------|")?;
-        writeln!(f, "| 异常数量 | `{}` |", self.exceptions.len())?;
+        writeln!(f, "| Item | Value |")?;
+        writeln!(f, "|------|-------|")?;
+        writeln!(f, "| Exception Count | `{}` |", self.exceptions.len())?;
         writeln!(
             f,
-            "| 寄存器转储 | `{}` |",
+            "| Register Dump | `{}` |",
             if self.register_dump.is_some() {
-                "存在"
+                "Present"
             } else {
-                "无"
+                "None"
             }
         )?;
         writeln!(f)?;
 
-        // 转换统计
-        writeln!(f, "## 🔄 转换统计")?;
+        // Conversion statistics
+        writeln!(f, "## 🔄 Conversion Statistics")?;
         writeln!(f)?;
-        writeln!(f, "| 统计项 | 数值 | 状态 |")?;
-        writeln!(f, "|--------|------|------|")?;
+        writeln!(f, "| Statistics Item | Value | Status |")?;
+        writeln!(f, "|-----------------|-------|--------|")?;
         writeln!(
             f,
-            "| 原始异常计数 | `{}` | - |",
+            "| Original Exception Count | `{}` | - |",
             self.conversion_stats.original_exception_count
         )?;
         writeln!(
             f,
-            "| 原始寄存器转储计数 | `{}` | - |",
+            "| Original Register Dump Count | `{}` | - |",
             self.conversion_stats.original_register_count
         )?;
         writeln!(
             f,
-            "| 转换成功 | `{}` | {} |",
+            "| Conversion Successful | `{}` | {} |",
             self.conversion_stats.conversion_successful,
             if self.conversion_stats.conversion_successful {
                 "✅"
@@ -106,7 +106,7 @@ impl std::fmt::Display for StandardExecutionOutput {
         )?;
         writeln!(
             f,
-            "| 警告数量 | `{}` | {} |",
+            "| Warning Count | `{}` | {} |",
             self.conversion_stats.warnings.len(),
             if self.conversion_stats.warnings.is_empty() {
                 "✅"
@@ -117,26 +117,26 @@ impl std::fmt::Display for StandardExecutionOutput {
         writeln!(f)?;
 
         if !self.conversion_stats.warnings.is_empty() {
-            writeln!(f, "### ⚠️ 转换警告 (完整列表)")?;
+            writeln!(f, "### ⚠️ Conversion Warnings (Complete List)")?;
             writeln!(f)?;
-            // 显示所有警告，不省略
+            // Show all warnings without truncation
             for (i, warning) in self.conversion_stats.warnings.iter().enumerate() {
                 writeln!(f, "{}. `{}`", i + 1, warning)?;
             }
             writeln!(f)?;
         }
 
-        // 异常列表
+        // Exception list
         if !self.exceptions.is_empty() {
-            writeln!(f, "## 🚨 `{}` 异常列表", self.emulator_type)?;
+            writeln!(f, "## 🚨 `{}` Exception List", self.emulator_type)?;
             writeln!(f)?;
-            writeln!(f, "**总计:** `{} 个异常`", self.exceptions.len())?;
+            writeln!(f, "**Total:** `{} exceptions`", self.exceptions.len())?;
             writeln!(f)?;
 
-            writeln!(f, "| # | MEPC | MCAUSE | 异常描述 | MTVAL | 位置 |")?;
-            writeln!(f, "|---|------|--------|----------|-------|------|")?;
+            writeln!(f, "| # | MEPC | MCAUSE | Exception Description | MTVAL | Position |")?;
+            writeln!(f, "|---|------|--------|----------------------|-------|----------|")?;
 
-            // 显示所有异常，不省略
+            // Show all exceptions without truncation
             for (i, ex) in self.exceptions.iter().enumerate() {
                 let desc = get_exception_description(ex.csrs.mcause);
                 writeln!(
@@ -152,44 +152,44 @@ impl std::fmt::Display for StandardExecutionOutput {
             }
             writeln!(f)?;
         } else {
-            writeln!(f, "## 🚨 `{}` 异常列表", self.emulator_type)?;
+            writeln!(f, "## 🚨 `{}` Exception List", self.emulator_type)?;
             writeln!(f)?;
-            writeln!(f, "> ✅ **无异常记录**")?;
+            writeln!(f, "> ✅ **No exception records**")?;
             writeln!(f)?;
         }
 
-        // 寄存器转储
+        // Register dump
         if let Some(dump) = &self.register_dump {
-            writeln!(f, "## 📝 `{}` 最终寄存器转储", self.emulator_type)?;
+            writeln!(f, "## 📝 `{}` Final Register Dump", self.emulator_type)?;
             writeln!(f)?;
             writeln!(
                 f,
-                "**转储类型:** `{:?}` | **位置:** `{}`",
+                "**Dump Type:** `{:?}` | **Position:** `{}`",
                 dump.dump_type, dump.position
             )?;
             writeln!(f)?;
 
-            // 核心寄存器完整列表
-            writeln!(f, "### 🎯 所有整数寄存器")?;
+            // Complete list of core registers
+            writeln!(f, "### 🎯 All Integer Registers")?;
             writeln!(f)?;
-            writeln!(f, "| 寄存器 | 值 | 描述 |")?;
-            writeln!(f, "|--------|-----|----- |")?;
+            writeln!(f, "| Register | Value | Description |")?;
+            writeln!(f, "|----------|-------|-------------|")?;
             for i in 0..32 {
                 let reg_name = get_register_name(i);
                 let description = match i {
-                    0 => "零寄存器",
-                    1 => "返回地址",
-                    2 => "栈指针",
-                    3 => "全局指针",
-                    4 => "线程指针",
-                    5..=7 => "临时寄存器",
-                    8 => "帧指针/保存寄存器",
-                    9 => "保存寄存器",
-                    10..=11 => "函数参数/返回值",
-                    12..=17 => "函数参数",
-                    18..=27 => "保存寄存器",
-                    28..=31 => "临时寄存器",
-                    _ => "未知寄存器",
+                    0 => "Zero register",
+                    1 => "Return address",
+                    2 => "Stack pointer",
+                    3 => "Global pointer",
+                    4 => "Thread pointer",
+                    5..=7 => "Temporary register",
+                    8 => "Frame pointer/Saved register",
+                    9 => "Saved register",
+                    10..=11 => "Function argument/return value",
+                    12..=17 => "Function argument",
+                    18..=27 => "Saved register",
+                    28..=31 => "Temporary register",
+                    _ => "Unknown register",
                 };
                 writeln!(
                     f,
@@ -199,109 +199,109 @@ impl std::fmt::Display for StandardExecutionOutput {
             }
             writeln!(f)?;
 
-            // 核心CSR完整列表
-            writeln!(f, "### ⚙️ 所有核心CSR")?;
+            // Complete list of core CSRs
+            writeln!(f, "### ⚙️ All Core CSRs")?;
             writeln!(f)?;
-            writeln!(f, "| CSR | 值 | 描述 |")?;
-            writeln!(f, "|-----|-----|----- |")?;
+            writeln!(f, "| CSR | Value | Description |")?;
+            writeln!(f, "|-----|-------|-------------|")?;
             writeln!(
                 f,
-                "| `mstatus` | `0x{:016X}` | 机器状态寄存器 |",
+                "| `mstatus` | `0x{:016X}` | Machine status register |",
                 dump.core_csrs.mstatus
             )?;
             writeln!(
                 f,
-                "| `misa` | `0x{:016X}` | ISA和扩展 |",
+                "| `misa` | `0x{:016X}` | ISA and extensions |",
                 dump.core_csrs.misa
             )?;
             writeln!(
                 f,
-                "| `medeleg` | `0x{:016X}` | 机器异常委托 |",
+                "| `medeleg` | `0x{:016X}` | Machine exception delegation |",
                 dump.core_csrs.medeleg
             )?;
             writeln!(
                 f,
-                "| `mideleg` | `0x{:016X}` | 机器中断委托 |",
+                "| `mideleg` | `0x{:016X}` | Machine interrupt delegation |",
                 dump.core_csrs.mideleg
             )?;
             writeln!(
                 f,
-                "| `mie` | `0x{:016X}` | 机器中断使能 |",
+                "| `mie` | `0x{:016X}` | Machine interrupt enable |",
                 dump.core_csrs.mie
             )?;
             writeln!(
                 f,
-                "| `mtvec` | `0x{:016X}` | 机器陷阱向量基地址 |",
+                "| `mtvec` | `0x{:016X}` | Machine trap vector base address |",
                 dump.core_csrs.mtvec
             )?;
             writeln!(
                 f,
-                "| `mcounteren` | `0x{:016X}` | 机器计数器使能 |",
+                "| `mcounteren` | `0x{:016X}` | Machine counter enable |",
                 dump.core_csrs.mcounteren
             )?;
             writeln!(
                 f,
-                "| `mscratch` | `0x{:016X}` | 机器临时寄存器 |",
+                "| `mscratch` | `0x{:016X}` | Machine scratch register |",
                 dump.core_csrs.mscratch
             )?;
             writeln!(
                 f,
-                "| `mepc` | `0x{:016X}` | 机器异常程序计数器 |",
+                "| `mepc` | `0x{:016X}` | Machine exception program counter |",
                 dump.core_csrs.mepc
             )?;
             writeln!(
                 f,
-                "| `mcause` | `0x{:016X}` | 机器陷阱原因 |",
+                "| `mcause` | `0x{:016X}` | Machine trap cause |",
                 dump.core_csrs.mcause
             )?;
             writeln!(
                 f,
-                "| `mtval` | `0x{:016X}` | 机器坏地址或指令 |",
+                "| `mtval` | `0x{:016X}` | Machine bad address or instruction |",
                 dump.core_csrs.mtval
             )?;
             writeln!(
                 f,
-                "| `mip` | `0x{:016X}` | 机器中断挂起 |",
+                "| `mip` | `0x{:016X}` | Machine interrupt pending |",
                 dump.core_csrs.mip
             )?;
             writeln!(
                 f,
-                "| `mcycle` | `0x{:016X}` | 机器周期计数器 |",
+                "| `mcycle` | `0x{:016X}` | Machine cycle counter |",
                 dump.core_csrs.mcycle
             )?;
             writeln!(
                 f,
-                "| `minstret` | `0x{:016X}` | 机器指令退役计数器 |",
+                "| `minstret` | `0x{:016X}` | Machine instructions retired counter |",
                 dump.core_csrs.minstret
             )?;
             writeln!(
                 f,
-                "| `mvendorid` | `0x{:016X}` | 厂商ID |",
+                "| `mvendorid` | `0x{:016X}` | Vendor ID |",
                 dump.core_csrs.mvendorid
             )?;
             writeln!(
                 f,
-                "| `marchid` | `0x{:016X}` | 架构ID |",
+                "| `marchid` | `0x{:016X}` | Architecture ID |",
                 dump.core_csrs.marchid
             )?;
             writeln!(
                 f,
-                "| `mimpid` | `0x{:016X}` | 实现ID |",
+                "| `mimpid` | `0x{:016X}` | Implementation ID |",
                 dump.core_csrs.mimpid
             )?;
             writeln!(
                 f,
-                "| `mhartid` | `0x{:016X}` | 硬件线程ID |",
+                "| `mhartid` | `0x{:016X}` | Hardware thread ID |",
                 dump.core_csrs.mhartid
             )?;
             writeln!(f)?;
 
             if let Some(fp_regs) = &dump.float_registers {
-                writeln!(f, "### 🔣 所有浮点寄存器")?;
+                writeln!(f, "### 🔣 All Floating-Point Registers")?;
                 writeln!(f)?;
-                writeln!(f, "| 寄存器 | 值 |")?;
-                writeln!(f, "|--------|-----|")?;
-                // 显示所有浮点寄存器
+                writeln!(f, "| Register | Value |")?;
+                writeln!(f, "|----------|-------|")?;
+                // Show all floating-point registers
                 for (i, &val) in fp_regs.iter().enumerate() {
                     writeln!(f, "| `f{}` | `0x{:016X}` |", i, val)?;
                 }
@@ -309,20 +309,20 @@ impl std::fmt::Display for StandardExecutionOutput {
             }
 
             if let Some(fcsr) = dump.float_csr {
-                writeln!(f, "**浮点CSR:** `fcsr = 0x{:016X}`", fcsr)?;
+                writeln!(f, "**Floating-Point CSR:** `fcsr = 0x{:016X}`", fcsr)?;
                 writeln!(f)?;
             }
         } else {
-            writeln!(f, "## 📝 `{}` 最终寄存器转储", self.emulator_type)?;
+            writeln!(f, "## 📝 `{}` Final Register Dump", self.emulator_type)?;
             writeln!(f)?;
-            writeln!(f, "> ❌ **无寄存器转储**")?;
+            writeln!(f, "> ❌ **No register dump**")?;
             writeln!(f)?;
         }
 
         writeln!(f, "---")?;
         writeln!(
             f,
-            "*生成时间: {}",
+            "*Generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 

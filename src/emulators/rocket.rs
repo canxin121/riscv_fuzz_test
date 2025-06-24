@@ -31,7 +31,8 @@ impl Default for RocketConfig {
             cycle_count: true,
             max_cycles: None,
             log_file: PathBuf::from("rocket_execution_trace.log"),
-            emulator_path: "emulators/rocket_emulator".to_string(),
+            emulator_path: std::env::var("ROCKET_EMULATOR_PATH")
+                .unwrap_or_else(|_| "emulators/rocket_emulator".to_string()),
         }
     }
 }

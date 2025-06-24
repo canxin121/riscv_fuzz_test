@@ -120,17 +120,17 @@ impl fmt::Display for CategorizedExceptionDiffs {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "### {}", format_category_title(&self.category))?;
         writeln!(f)?;
-        writeln!(f, "| 属性 | 数值 |")?;
-        writeln!(f, "|------|------|")?;
-        writeln!(f, "| 发生次数 | {} |", self.count)?;
-        writeln!(f, "| 受影响的PC | {} |", self.pc_list.len())?;
+        writeln!(f, "| Property | Value |")?;
+        writeln!(f, "|----------|-------|")?;
+        writeln!(f, "| Occurrence Count | {} |", self.count)?;
+        writeln!(f, "| Affected PCs | {} |", self.pc_list.len())?;
         writeln!(f)?;
 
         if !self.pc_list.is_empty() {
-            writeln!(f, "#### PC地址与指令映射")?;
+            writeln!(f, "#### PC Address and Instruction Mapping")?;
             writeln!(f)?;
-            writeln!(f, "| # | PC地址 | 反汇编指令 | 原始汇编指令|")?;
-            writeln!(f, "|---|--------|------------|------------|")?;
+            writeln!(f, "| # | PC Address | Disassembly | Original Assembly |")?;
+            writeln!(f, "|---|------------|-------------|-------------------|")?;
             for (i, pc) in self.pc_list.iter().enumerate() {
                 let trace_info = if i < self.pc_instruction_traces.len() {
                     self.pc_instruction_traces[i].as_ref()
@@ -158,7 +158,7 @@ impl fmt::Display for CategorizedExceptionDiffs {
         }
 
         if !self.diffs_summary.is_empty() {
-            writeln!(f, "#### 差异示例")?;
+            writeln!(f, "#### Difference Examples")?;
             writeln!(f)?;
             for (i, summary) in self.diffs_summary.iter().enumerate() {
                 writeln!(f, "{}. {}", i + 1, summary)?;
@@ -166,7 +166,7 @@ impl fmt::Display for CategorizedExceptionDiffs {
             writeln!(f)?;
         }
 
-        writeln!(f, "#### 描述")?;
+        writeln!(f, "#### Description")?;
         writeln!(f)?;
         writeln!(f, "{}", format_category_description(&self.category))?;
 
@@ -181,7 +181,7 @@ pub fn format_category_title(category: &ExceptionDiffCategory) -> String {
             sim2_value,
         } => {
             format!(
-                "固定 MIP 差异 (值1=0x{:X}, 值2=0x{:X})",
+                "Fixed MIP Difference (Value1=0x{:X}, Value2=0x{:X})",
                 sim1_value, sim2_value
             )
         }
@@ -191,32 +191,32 @@ pub fn format_category_title(category: &ExceptionDiffCategory) -> String {
         } => {
             let sim1_desc = get_exception_description(*sim1_cause);
             let sim2_desc = get_exception_description(*sim2_cause);
-            format!("MCAUSE 差异 (原因1: {} vs 原因2: {})", sim1_desc, sim2_desc)
+            format!("MCAUSE Difference (Cause1: {} vs Cause2: {})", sim1_desc, sim2_desc)
         }
         ExceptionDiffCategory::OnlyInSimulator { simulator, mcause } => {
             let desc = get_exception_description(*mcause);
             format!(
-                "仅在 {} 中出现 (mcause: 0x{:X} - {})",
+                "Only in {} (mcause: 0x{:X} - {})",
                 simulator, mcause, desc
             )
         }
-        ExceptionDiffCategory::MtvalDifference => "MTVAL 值差异".to_string(),
+        ExceptionDiffCategory::MtvalDifference => "MTVAL Value Difference".to_string(),
         ExceptionDiffCategory::OtherCsrDifference { csr_name } => {
-            format!("其他 CSR ({}) 差异", csr_name)
+            format!("Other CSR ({}) Difference", csr_name)
         }
     }
 }
 
 pub fn format_category_name(category: &ExceptionDiffCategory) -> String {
     match category {
-        ExceptionDiffCategory::FixedMipDifference { .. } => "固定MIP差异".to_string(),
-        ExceptionDiffCategory::McauseDifference { .. } => "MCAUSE差异".to_string(),
+        ExceptionDiffCategory::FixedMipDifference { .. } => "Fixed MIP Difference".to_string(),
+        ExceptionDiffCategory::McauseDifference { .. } => "MCAUSE Difference".to_string(),
         ExceptionDiffCategory::OnlyInSimulator { simulator, .. } => {
-            format!("仅在{}中出现的异常", simulator)
+            format!("Exception only in {}", simulator)
         }
-        ExceptionDiffCategory::MtvalDifference => "MTVAL差异".to_string(),
+        ExceptionDiffCategory::MtvalDifference => "MTVAL Difference".to_string(),
         ExceptionDiffCategory::OtherCsrDifference { csr_name } => {
-            format!("{}差异", csr_name)
+            format!("{} Difference", csr_name)
         }
     }
 }
@@ -224,22 +224,22 @@ pub fn format_category_name(category: &ExceptionDiffCategory) -> String {
 fn format_category_description(category: &ExceptionDiffCategory) -> String {
     match category {
         ExceptionDiffCategory::FixedMipDifference { .. } => {
-            "描述: MIP 寄存器值在模拟器之间存在固定差异。\n".to_string()
+            "Description: MIP register value has fixed difference between simulators.\n".to_string()
         }
         ExceptionDiffCategory::McauseDifference { .. } => {
-            "描述: 相同的操作导致了不同的异常原因。\n".to_string()
+            "Description: Same operation caused different exception causes.\n".to_string()
         }
         ExceptionDiffCategory::OnlyInSimulator { simulator, .. } => {
             format!(
-                "描述: 异常仅在 {} 中触发，另一个模拟器在此点继续执行或没有异常。\n",
+                "Description: Exception only triggered in {}, the other simulator continues execution or has no exception at this point.\n",
                 simulator
             )
         }
         ExceptionDiffCategory::MtvalDifference => {
-            "描述: MTVAL 寄存器值不同，可能是由于地址计算或陷入条件不同。\n".to_string()
+            "Description: MTVAL register values differ, possibly due to different address calculations or trap conditions.\n".to_string()
         }
         ExceptionDiffCategory::OtherCsrDifference { csr_name } => {
-            format!("描述: 其他 CSR ({}) 寄存器存在差异。\n", csr_name)
+            format!("Description: Other CSR ({}) register has differences.\n", csr_name)
         }
     }
 }
@@ -247,8 +247,6 @@ fn format_category_description(category: &ExceptionDiffCategory) -> String {
 /// Analyzes and categorizes a list of raw exception differences.
 pub fn analyze_and_categorize_exception_diffs(
     raw_diffs: Vec<ExceptionDiffInfo>,
-    // sim1_type: EmulatorType, // No longer needed if ExceptionDiffInfo stores the correct type
-    // sim2_type: EmulatorType, // No longer needed
 ) -> Vec<CategorizedExceptionDiffs> {
     let mut category_map: HashMap<ExceptionDiffCategory, Vec<ExceptionDiffInfo>> = HashMap::new();
 
@@ -386,47 +384,47 @@ impl RegistersDumpDiff {
 
 impl fmt::Display for RegistersDumpDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 寄存器转储差异")?;
+        writeln!(f, "# Register Dump Differences")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "未发现差异")?;
+            writeln!(f, "No differences found")?;
             writeln!(f)?;
             return Ok(());
         }
 
-        // 差异汇总
+        // Difference summary
         let mut diff_sections = Vec::new();
         if !self.int_registers_diff.is_empty() {
-            diff_sections.push("整数寄存器");
+            diff_sections.push("Integer Registers");
         }
         if !self.core_csrs_diff.is_empty() {
-            diff_sections.push("核心CSR");
+            diff_sections.push("Core CSRs");
         }
         if self.float_registers_status_changed.is_some() {
-            diff_sections.push("浮点寄存器状态");
+            diff_sections.push("Float Register Status");
         }
         if !self.float_registers_diff.is_empty() {
-            diff_sections.push("浮点寄存器");
+            diff_sections.push("Float Registers");
         }
         if self.float_csr_status_changed.is_some() || self.float_csr_diff.is_some() {
-            diff_sections.push("浮点CSR");
+            diff_sections.push("Float CSRs");
         }
 
-        writeln!(f, "发现差异: {}", diff_sections.join(", "))?;
+        writeln!(f, "Differences found in: {}", diff_sections.join(", "))?;
         writeln!(f)?;
 
         if !self.int_registers_diff.is_empty() {
-            writeln!(f, "## 整数寄存器差异")?;
+            writeln!(f, "## Integer Register Differences")?;
             writeln!(f)?;
-            writeln!(f, "差异数量: {} / 32", self.int_registers_diff.len())?;
+            writeln!(f, "Difference count: {} / 32", self.int_registers_diff.len())?;
             writeln!(f)?;
             writeln!(
                 f,
-                "| 寄存器 | ABI名称 | {} | {} |",
+                "| Register | ABI Name | {} | {} |",
                 self.emulator_type1, self.emulator_type2
             )?;
-            writeln!(f, "|--------|---------|------|------|")?;
+            writeln!(f, "|----------|----------|------|------|")?;
             for (idx, name, val1, val2) in &self.int_registers_diff {
                 writeln!(
                     f,
@@ -438,9 +436,9 @@ impl fmt::Display for RegistersDumpDiff {
         }
 
         if !self.core_csrs_diff.is_empty() {
-            writeln!(f, "## 核心CSR差异")?;
+            writeln!(f, "## Core CSR Differences")?;
             writeln!(f)?;
-            writeln!(f, "差异数量: {}", self.core_csrs_diff.len())?;
+            writeln!(f, "Difference count: {}", self.core_csrs_diff.len())?;
             writeln!(f)?;
             writeln!(
                 f,
@@ -455,33 +453,33 @@ impl fmt::Display for RegistersDumpDiff {
         }
 
         if let Some((status1, status2)) = &self.float_registers_status_changed {
-            writeln!(f, "## 浮点寄存器状态差异")?;
+            writeln!(f, "## Float Register Status Difference")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "| 项目 | {} | {} |",
+                "| Item | {} | {} |",
                 self.emulator_type1, self.emulator_type2
             )?;
             writeln!(f, "|------|--------|--------|")?;
-            writeln!(f, "| 浮点寄存器 | {} | {} |", status1, status2)?;
+            writeln!(f, "| Float Registers | {} | {} |", status1, status2)?;
             writeln!(f)?;
         }
 
         if !self.float_registers_diff.is_empty() {
-            writeln!(f, "## 浮点寄存器差异")?;
+            writeln!(f, "## Float Register Differences")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "差异数量: {} / 32 个浮点寄存器",
+                "Difference count: {} / 32 float registers",
                 self.float_registers_diff.len()
             )?;
             writeln!(f)?;
             writeln!(
                 f,
-                "| 寄存器 | {} | {} |",
+                "| Register | {} | {} |",
                 self.emulator_type1, self.emulator_type2
             )?;
-            writeln!(f, "|--------|------|------|")?;
+            writeln!(f, "|----------|------|------|")?;
             for (idx, val1, val2) in &self.float_registers_diff {
                 writeln!(f, "| f{:02} | 0x{:016X} | 0x{:016X} |", idx, val1, val2,)?;
             }
@@ -489,20 +487,20 @@ impl fmt::Display for RegistersDumpDiff {
         }
 
         if let Some((status1, status2)) = &self.float_csr_status_changed {
-            writeln!(f, "## 浮点CSR状态差异")?;
+            writeln!(f, "## Float CSR Status Difference")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "| 项目 | {} | {} |",
+                "| Item | {} | {} |",
                 self.emulator_type1, self.emulator_type2
             )?;
             writeln!(f, "|------|--------|--------|")?;
-            writeln!(f, "| 浮点CSR | {} | {} |", status1, status2)?;
+            writeln!(f, "| Float CSR | {} | {} |", status1, status2)?;
             writeln!(f)?;
         }
 
         if let Some((val1, val2)) = self.float_csr_diff {
-            writeln!(f, "## 浮点CSR差异")?;
+            writeln!(f, "## Float CSR Differences")?;
             writeln!(f)?;
             writeln!(
                 f,
@@ -656,7 +654,7 @@ impl PairedExceptionDiff {
         let mut result = String::new();
 
         result.push_str(&format!(
-            "  配对异常差异 (基于 MEPC 0x{:016X} 匹配):\n",
+            "  Paired Exception Difference (matched by MEPC 0x{:016X}):\n",
             self.exception1.csrs.mepc
         ));
 
@@ -664,17 +662,17 @@ impl PairedExceptionDiff {
         let desc2 = get_exception_description(self.exception2.csrs.mcause);
 
         result.push_str(&format!(
-            "    {}异常: 位置={}, MCAUSE=0x{:016X} ({})\n",
+            "    {} Exception: Position={}, MCAUSE=0x{:016X} ({})\n",
             sim1_name, self.exception1.position, self.exception1.csrs.mcause, desc1
         ));
 
         result.push_str(&format!(
-            "    {}异常: 位置={}, MCAUSE=0x{:016X} ({})\n",
+            "    {} Exception: Position={}, MCAUSE=0x{:016X} ({})\n",
             sim2_name, self.exception2.position, self.exception2.csrs.mcause, desc2
         ));
 
         if !self.csrs_differences.is_empty() {
-            result.push_str("    CSR 字段差异:\n");
+            result.push_str("    CSR Field Differences:\n");
             for (name, val1, val2) in &self.csrs_differences {
                 let val1_desc = if name == "mcause" {
                     format!(" ({})", get_exception_description(*val1))
@@ -692,7 +690,7 @@ impl PairedExceptionDiff {
                 ));
             }
         } else {
-            result.push_str("    无字段差异\n");
+            result.push_str("    No field differences\n");
         }
 
         result
@@ -731,14 +729,14 @@ impl fmt::Display for ExceptionListDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "# 异常列表差异报告")?;
+        writeln!(f, "# Exception List Diff Report")?;
         writeln!(f)?;
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
         let mut significant_diff_found = false;
 
-        // 差异汇总
+        // Difference summary
         let only_sim1_count = self.list1_only_exceptions.len();
         let only_sim2_count = self.list2_only_exceptions.len();
         let paired_diffs_count = self
@@ -748,31 +746,31 @@ impl fmt::Display for ExceptionListDiff {
             .count();
         let total_paired = self.paired_exceptions_diffs.len();
 
-        writeln!(f, "## 差异汇总")?;
+        writeln!(f, "## Difference Summary")?;
         writeln!(f)?;
-        writeln!(f, "| 类别 | 数量 |")?;
-        writeln!(f, "|------|------|")?;
-        writeln!(f, "| 仅在 {} 中的异常 | {} |", sim1_name, only_sim1_count)?;
-        writeln!(f, "| 仅在 {} 中的异常 | {} |", sim2_name, only_sim2_count)?;
-        writeln!(f, "| 匹配异常对 (总数) | {} |", total_paired)?;
-        writeln!(f, "| 匹配异常对 (有差异) | {} |", paired_diffs_count)?;
-        writeln!(f, "| 分类差异数 | {} |", self.categorized_summary.len())?;
+        writeln!(f, "| Category | Count |")?;
+        writeln!(f, "|----------|-------|")?;
+        writeln!(f, "| Exceptions only in {} | {} |", sim1_name, only_sim1_count)?;
+        writeln!(f, "| Exceptions only in {} | {} |", sim2_name, only_sim2_count)?;
+        writeln!(f, "| Matched exception pairs (total) | {} |", total_paired)?;
+        writeln!(f, "| Matched exception pairs (with differences) | {} |", paired_diffs_count)?;
+        writeln!(f, "| Categorized differences | {} |", self.categorized_summary.len())?;
         writeln!(f)?;
 
         if !self.list1_only_exceptions.is_empty() {
             significant_diff_found = true;
-            writeln!(f, "## 仅在 {} 中存在的异常", sim1_name)?;
+            writeln!(f, "## Exceptions only in {}", sim1_name)?;
             writeln!(f)?;
-            writeln!(f, "总计: {}", self.list1_only_exceptions.len())?;
+            writeln!(f, "Total: {}", self.list1_only_exceptions.len())?;
             writeln!(f)?;
 
             writeln!(
                 f,
-                "| # | MEPC | 反汇编指令 | 原始汇编指令 | MCAUSE | 异常描述 | MTVAL | 位置 |"
+                "| # | MEPC | Disassembly | Original Assembly | MCAUSE | Exception Description | MTVAL | Position |"
             )?;
             writeln!(
                 f,
-                "|---|------|------------|--------------|--------|----------|-------|------|"
+                "|---|------|-------------|-------------------|--------|----------------------|-------|----------|"
             )?;
 
             for (i, ex) in self.list1_only_exceptions.iter().enumerate() {
@@ -803,18 +801,18 @@ impl fmt::Display for ExceptionListDiff {
 
         if !self.list2_only_exceptions.is_empty() {
             significant_diff_found = true;
-            writeln!(f, "## 仅在 {} 中存在的异常", sim2_name)?;
+            writeln!(f, "## Exceptions only in {}", sim2_name)?;
             writeln!(f)?;
-            writeln!(f, "总计: {}", self.list2_only_exceptions.len())?;
+            writeln!(f, "Total: {}", self.list2_only_exceptions.len())?;
             writeln!(f)?;
 
             writeln!(
                 f,
-                "| # | MEPC | 反汇编指令 | 原始汇编指令 | MCAUSE | 异常描述 | MTVAL | 位置 |"
+                "| # | MEPC | Disassembly | Original Assembly | MCAUSE | Exception Description | MTVAL | Position |"
             )?;
             writeln!(
                 f,
-                "|---|------|------------|--------------|--------|----------|-------|------|"
+                "|---|------|-------------|-------------------|--------|----------------------|-------|----------|"
             )?;
 
             for (i, ex) in self.list2_only_exceptions.iter().enumerate() {
@@ -843,7 +841,7 @@ impl fmt::Display for ExceptionListDiff {
             writeln!(f)?;
         }
 
-        // 过滤真正有差异的配对异常
+        // Filter truly different paired exceptions
         let paired_diffs_with_actual_differences: Vec<&PairedExceptionDiff> = self
             .paired_exceptions_diffs
             .iter()
@@ -852,11 +850,11 @@ impl fmt::Display for ExceptionListDiff {
 
         if !paired_diffs_with_actual_differences.is_empty() {
             significant_diff_found = true;
-            writeln!(f, "## 匹配异常的差异详情")?;
+            writeln!(f, "## Matched Exception Difference Details")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "有差异的配对: {} / {} 对",
+                "Pairs with differences: {} / {} pairs",
                 paired_diffs_with_actual_differences.len(),
                 self.paired_exceptions_diffs.len()
             )?;
@@ -865,17 +863,17 @@ impl fmt::Display for ExceptionListDiff {
             for (i, pair_diff) in paired_diffs_with_actual_differences.iter().enumerate() {
                 writeln!(
                     f,
-                    "### 配对 {} - MEPC: 0x{:016X}",
+                    "### Pair {} - MEPC: 0x{:016X}",
                     i + 1,
                     pair_diff.exception1.csrs.mepc
                 )?;
                 writeln!(f)?;
 
                 if let Some(trace) = &pair_diff.exception1.inst_trace {
-                    writeln!(f, "#### 触发指令")?;
+                    writeln!(f, "#### Triggering Instruction")?;
                     writeln!(f)?;
-                    writeln!(f, "| PC地址 | 反汇编指令 | 原始汇编指令 |")?;
-                    writeln!(f, "|--------|------------|--------------|")?;
+                    writeln!(f, "| PC Address | Disassembly | Original Assembly |")?;
+                    writeln!(f, "|------------|-------------|-------------------|")?;
                     writeln!(
                         f,
                         "| 0x{:016X} | {} | {} |",
@@ -886,15 +884,15 @@ impl fmt::Display for ExceptionListDiff {
                     writeln!(f)?;
                 }
 
-                // 异常基本信息对比表
+                // Exception basic information comparison table
                 let desc1 = get_exception_description(pair_diff.exception1.csrs.mcause);
                 let desc2 = get_exception_description(pair_diff.exception2.csrs.mcause);
 
-                writeln!(f, "| 项目 | {} | {} |", sim1_name, sim2_name)?;
+                writeln!(f, "| Item | {} | {} |", sim1_name, sim2_name)?;
                 writeln!(f, "|------|------------|------------|")?;
                 writeln!(
                     f,
-                    "| 位置 | {} | {} |",
+                    "| Position | {} | {} |",
                     pair_diff.exception1.position, pair_diff.exception2.position
                 )?;
                 writeln!(
@@ -902,14 +900,14 @@ impl fmt::Display for ExceptionListDiff {
                     "| MCAUSE | 0x{:016X} | 0x{:016X} |",
                     pair_diff.exception1.csrs.mcause, pair_diff.exception2.csrs.mcause
                 )?;
-                writeln!(f, "| 异常描述 | {} | {} |", desc1, desc2)?;
+                writeln!(f, "| Exception Description | {} | {} |", desc1, desc2)?;
                 writeln!(f)?;
 
                 if !pair_diff.csrs_differences.is_empty() {
-                    writeln!(f, "#### CSR字段差异")?;
+                    writeln!(f, "#### CSR Field Differences")?;
                     writeln!(f)?;
-                    writeln!(f, "| CSR字段 | {} | {} | 差异说明 |", sim1_name, sim2_name)?;
-                    writeln!(f, "|---------|------------|------------|----------|")?;
+                    writeln!(f, "| CSR Field | {} | {} | Difference Description |", sim1_name, sim2_name)?;
+                    writeln!(f, "|-----------|------------|------------|----------------------|")?;
 
                     for (name, val1, val2) in &pair_diff.csrs_differences {
                         let diff_desc = if name == "mcause" {
@@ -919,7 +917,7 @@ impl fmt::Display for ExceptionListDiff {
                                 get_exception_description(*val2)
                             )
                         } else {
-                            "数值不同".to_string()
+                            "Values differ".to_string()
                         };
                         writeln!(
                             f,
@@ -929,16 +927,16 @@ impl fmt::Display for ExceptionListDiff {
                     }
                     writeln!(f)?;
                 } else {
-                    writeln!(f, "CSR字段无差异")?;
+                    writeln!(f, "No CSR field differences")?;
                     writeln!(f)?;
                 }
             }
         } else if !self.paired_exceptions_diffs.is_empty() {
-            writeln!(f, "## 匹配异常状态")?;
+            writeln!(f, "## Matched Exception Status")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "{} 对 匹配异常，无差异",
+                "{} matched exception pairs, no differences",
                 self.paired_exceptions_diffs.len()
             )?;
             writeln!(f)?;
@@ -946,25 +944,25 @@ impl fmt::Display for ExceptionListDiff {
 
         if !self.categorized_summary.is_empty() {
             significant_diff_found = true;
-            writeln!(f, "## 分类异常差异摘要")?;
+            writeln!(f, "## Categorized Exception Difference Summary")?;
             writeln!(f)?;
             let total_categorized: usize = self.categorized_summary.iter().map(|s| s.count).sum();
-            writeln!(f, "总差异数: {}", total_categorized)?;
+            writeln!(f, "Total differences: {}", total_categorized)?;
             writeln!(f)?;
 
             for (i, cat_sum) in self.categorized_summary.iter().enumerate() {
-                writeln!(f, "### 类别 {}", i + 1)?;
+                writeln!(f, "### Category {}", i + 1)?;
                 writeln!(f)?;
-                writeln!(f, "类别: {}", format_category_title(&cat_sum.category))?;
-                writeln!(f, "发生次数: {}", cat_sum.count)?;
-                writeln!(f, "受影响的PC: {} 个", cat_sum.pc_list.len())?;
+                writeln!(f, "Category: {}", format_category_title(&cat_sum.category))?;
+                writeln!(f, "Occurrence count: {}", cat_sum.count)?;
+                writeln!(f, "Affected PCs: {} addresses", cat_sum.pc_list.len())?;
                 writeln!(f)?;
 
                 if !cat_sum.pc_list.is_empty() {
-                    writeln!(f, "#### PC地址与指令列表")?;
+                    writeln!(f, "#### PC Address and Instruction List")?;
                     writeln!(f)?;
-                    writeln!(f, "| # | PC地址 | 反汇编指令 | 原始汇编指令 |")?;
-                    writeln!(f, "|---|--------|------------|--------------|")?;
+                    writeln!(f, "| # | PC Address | Disassembly | Original Assembly |")?;
+                    writeln!(f, "|---|------------|-------------|-------------------|")?;
                     for (j, pc) in cat_sum.pc_list.iter().enumerate() {
                         let trace_info = if j < cat_sum.pc_instruction_traces.len() {
                             cat_sum.pc_instruction_traces[j].as_ref()
@@ -991,7 +989,7 @@ impl fmt::Display for ExceptionListDiff {
                     writeln!(f)?;
                 }
 
-                writeln!(f, "#### 描述")?;
+                writeln!(f, "#### Description")?;
                 writeln!(f)?;
                 writeln!(f, "{}", format_category_description(&cat_sum.category))?;
                 writeln!(f)?;
@@ -1003,16 +1001,16 @@ impl fmt::Display for ExceptionListDiff {
         }
 
         if !significant_diff_found {
-            writeln!(f, "## 差异结果")?;
+            writeln!(f, "## Difference Result")?;
             writeln!(f)?;
-            writeln!(f, "异常列表完全匹配，无差异！")?;
+            writeln!(f, "Exception lists match completely, no differences!")?;
             writeln!(f)?;
         }
 
         writeln!(f, "---")?;
         writeln!(
             f,
-            "异常差异报告生成时间: {}",
+            "Exception diff report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 

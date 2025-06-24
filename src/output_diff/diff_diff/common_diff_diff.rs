@@ -62,11 +62,11 @@ impl CommonExecutionOutputDiffDiff {
 
 impl fmt::Display for CommonExecutionOutputDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 通用执行输出差异变化报告")?;
+        writeln!(f, "# Common Execution Output Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "通用执行输出差异无变化")?;
+            writeln!(f, "No changes in common execution output differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -74,14 +74,14 @@ impl fmt::Display for CommonExecutionOutputDiffDiff {
         let sim1_name = self.get_sim1_name();
         let sim2_name = self.get_sim2_name();
 
-        writeln!(f, "比较对象: {} ⚡ {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} ⚡ {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        // 变化汇总表格
-        writeln!(f, "## 变化汇总")?;
+        // Change summary table
+        writeln!(f, "## Change Summary")?;
         writeln!(f)?;
-        writeln!(f, "| 变化项目 | 状态 | 详情 |")?;
-        writeln!(f, "|:---------|:----:|:-----|")?;
+        writeln!(f, "| Change Item | Status | Details |")?;
+        writeln!(f, "|:------------|:------:|:--------|")?;
 
         let mut change_count = 0;
 
@@ -93,17 +93,17 @@ impl fmt::Display for CommonExecutionOutputDiffDiff {
                 }
                 _ => format!("{:?} → {:?}", ch.old, ch.new)
             };
-            writeln!(f, "| 寄存器转储数量 | 🔄 变化 | {} |", detail)?;
+            writeln!(f, "| Register Dump Count | 🔄 Changed | {} |", detail)?;
         }
 
         if let Some(ch) = &self.differing_register_dumps_changed {
             change_count += 1;
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
-            writeln!(f, "| 寄存器内容差异 | {} | {}→{} 个差异转储 |", 
+            writeln!(f, "| Register Content Differences | {} | {}→{} differing dumps |", 
                 trend, ch.old.len(), ch.new.len())?;
         }
 
@@ -111,32 +111,32 @@ impl fmt::Display for CommonExecutionOutputDiffDiff {
             change_count += 1;
             let ch = self.exception_dumps_diff_presence_changed.as_ref().unwrap();
             let status = match (ch.old, ch.new) {
-                (false, true) => "✅ 新增异常差异",
-                (true, false) => "❌ 消除异常差异", 
-                _ => "🔄 异常差异状态变化",
+                (false, true) => "✅ New Exception Differences",
+                (true, false) => "❌ Exception Differences Resolved", 
+                _ => "🔄 Exception Difference Status Changed",
             };
-            writeln!(f, "| 异常转储差异 | {} | 存在状态变化 |", status)?;
+            writeln!(f, "| Exception Dump Differences | {} | Presence status changed |", status)?;
         }
 
         if let Some(ch) = &self.output_items_status_diff {
             change_count += 1;
-            writeln!(f, "| 输出项状态 | 🔄 变化 | {:?} → {:?} |", ch.old, ch.new)?;
+            writeln!(f, "| Output Item Status | 🔄 Changed | {:?} → {:?} |", ch.old, ch.new)?;
         }
 
         if change_count == 0 {
-            writeln!(f, "| - | ✅ 无变化 | 所有项目保持一致 |")?;
+            writeln!(f, "| - | ✅ No Changes | All items remain consistent |")?;
         }
         writeln!(f)?;
 
-        // 详细变化分析
-        writeln!(f, "## 详细变化分析")?;
+        // Detailed change analysis
+        writeln!(f, "## Detailed Change Analysis")?;
         writeln!(f)?;
 
         if let Some(ch) = &self.register_dumps_count_changed_diff {
-            writeln!(f, "### 寄存器转储数量差异变化")?;
+            writeln!(f, "### Register Dump Count Difference Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 转储数 | {} 转储数 | 差异量 | 差异率 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:----------:|:----------:|:------:|:------:|")?;
+            writeln!(f, "| Period | {} Dump Count | {} Dump Count | Difference | Difference Rate |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:-------------:|:-------------:|:----------:|:---------------:|")?;
             match (&ch.old, &ch.new) {
                 (Some((old1, old2)), Some((new1, new2))) => {
                     let old_diff = (*old2 as i64 - *old1 as i64).abs();
@@ -147,75 +147,99 @@ impl fmt::Display for CommonExecutionOutputDiffDiff {
                     let new_rate = if *new1.max(new2) > 0 { 
                         (new_diff as f64 / *new1.max(new2) as f64) * 100.0 
                     } else { 0.0 };
-                    writeln!(f, "| 变化前 | {} | {} | {} | {:.1}% |", old1, old2, old_diff, old_rate)?;
-                    writeln!(f, "| 变化后 | {} | {} | {} | {:.1}% |", new1, new2, new_diff, new_rate)?;
+                    writeln!(f, "| Before | {} | {} | {} | {:.1}% |", old1, old2, old_diff, old_rate)?;
+                    writeln!(f, "| After | {} | {} | {} | {:.1}% |", new1, new2, new_diff, new_rate)?;
                 }
                 _ => {
-                    writeln!(f, "| 变化前 | {:?} | - | - | - |", ch.old)?;
-                    writeln!(f, "| 变化后 | {:?} | - | - | - |", ch.new)?;
+                    writeln!(f, "| Before | {:?} | - | - | - |", ch.old)?;
+                    writeln!(f, "| After | {:?} | - | - | - |", ch.new)?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.differing_register_dumps_changed {
-            writeln!(f, "### 寄存器内容差异变化")?;
+            writeln!(f, "### Register Content Difference Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 指标 | 变化前 | 变化后 | 净变化 | 影响评估 |")?;
-            writeln!(f, "|:-----|:------:|:------:|:------:|:---------|")?;
+            writeln!(f, "| Metric | Before | After | Net Change | Impact Assessment |")?;
+            writeln!(f, "|:-------|:------:|:-----:|:----------:|:------------------|")?;
 
             let net_change = ch.new.len() as i64 - ch.old.len() as i64;
             let impact = match net_change {
-                x if x > 5 => "⚠️ 显著增加",
-                x if x > 0 => "📈 轻微增加", 
-                0 => "✅ 保持稳定",
-                x if x > -5 => "轻微减少",
-                _ => "✅ 显著改善",
+                x if x > 5 => "⚠️ Significant Increase",
+                x if x > 0 => "📈 Slight Increase", 
+                0 => "✅ Stable",
+                x if x > -5 => "📉 Slight Decrease",
+                _ => "✅ Significant Improvement",
             };
 
-            writeln!(f, "| 差异转储数量 | {} | {} | {:+} | {} |", 
+            writeln!(f, "| Differing Dump Count | {} | {} | {:+} | {} |", 
                 ch.old.len(), ch.new.len(), net_change, impact)?;
 
             let consistency = if ch.old.is_empty() && ch.new.is_empty() {
-                "🎯 完全一致"
+                "🎯 Fully Consistent"
             } else if ch.old.is_empty() {
-                "⚠️ 新增差异"
+                "⚠️ New Differences"
             } else if ch.new.is_empty() {
-                "✅ 完全修复"
+                "✅ Fully Fixed"
             } else {
-                "🔄 部分差异"
+                "🔄 Partial Differences"
             };
 
-            writeln!(f, "| 一致性状态 | {} | {} | - | {} |", 
-                if ch.old.is_empty() { "一致" } else { "有差异" },
-                if ch.new.is_empty() { "一致" } else { "有差异" },
+            writeln!(f, "| Consistency Status | {} | {} | - | {} |", 
+                if ch.old.is_empty() { "Consistent" } else { "Has Differences" },
+                if ch.new.is_empty() { "Consistent" } else { "Has Differences" },
                 consistency)?;
             writeln!(f)?;
+
+            if !ch.old.is_empty() || !ch.new.is_empty() {
+                writeln!(f, "#### Differing Dump Index Comparison")?;
+                writeln!(f)?;
+                writeln!(f, "| Period | Dump Index List |")?;
+                writeln!(f, "|--------|-----------------|")?;
+
+                if !ch.old.is_empty() {
+                    let old_indices: Vec<String> =
+                        ch.old.iter().map(|(idx, _)| (idx + 1).to_string()).collect();
+                    writeln!(f, "| Before | {} |", old_indices.join(", "))?;
+                } else {
+                    writeln!(f, "| Before | No differing dumps |")?;
+                }
+
+                if !ch.new.is_empty() {
+                    let new_indices: Vec<String> =
+                        ch.new.iter().map(|(idx, _)| (idx + 1).to_string()).collect();
+                    writeln!(f, "| After | {} |", new_indices.join(", "))?;
+                } else {
+                    writeln!(f, "| After | No differing dumps |")?;
+                }
+                writeln!(f)?;
+            }
         }
 
         if let Some(content_diff) = &self.exception_dumps_diff_content_diff {
             if !content_diff.is_empty() {
-                writeln!(f, "### 异常转储差异内容变化")?;
+                writeln!(f, "### Exception Dump Difference Content Changes")?;
                 writeln!(f, "{}", content_diff)?;
             }
         }
 
         if let Some(ch) = &self.sim1_emulator_type_changed_diff {
-            writeln!(f, "### {} 模拟器类型变化", sim1_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim1_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.sim2_emulator_type_changed_diff {
-            writeln!(f, "### {} 模拟器类型变化", sim2_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim2_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
         writeln!(f, "---")?;
         writeln!(
             f,
-            "通用输出差异变化报告生成时间: {}",
+            "Common output diff change report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 

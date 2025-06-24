@@ -36,65 +36,65 @@ pub fn get_register_name(reg_num: usize) -> &'static str {
     }
 }
 
-/// 获取异常描述
+/// Get exception description
 pub fn get_exception_description(mcause: u64) -> String {
     let interrupt = (mcause >> 63) & 1 == 1;
     let exception_code = mcause & 0x7FFFFFFFFFFFFFFF;
 
     if interrupt {
         match exception_code {
-            0 => "用户软件中断".to_string(),
-            1 => "监管者软件中断".to_string(),
-            3 => "机器软件中断".to_string(),
-            4 => "用户定时器中断".to_string(),
-            5 => "监管者定时器中断".to_string(),
-            7 => "机器定时器中断".to_string(),
-            8 => "用户外部中断".to_string(),
-            9 => "监管者外部中断".to_string(),
-            11 => "机器外部中断".to_string(),
-            _ => format!("未知中断 (代码={})", exception_code),
+            0 => "User software interrupt".to_string(),
+            1 => "Supervisor software interrupt".to_string(),
+            3 => "Machine software interrupt".to_string(),
+            4 => "User timer interrupt".to_string(),
+            5 => "Supervisor timer interrupt".to_string(),
+            7 => "Machine timer interrupt".to_string(),
+            8 => "User external interrupt".to_string(),
+            9 => "Supervisor external interrupt".to_string(),
+            11 => "Machine external interrupt".to_string(),
+            _ => format!("Unknown interrupt (code={})", exception_code),
         }
     } else {
         match exception_code {
-            0 => "指令地址未对齐".to_string(),
-            1 => "指令访问故障".to_string(),
-            2 => "非法指令".to_string(),
-            3 => "断点".to_string(),
-            4 => "加载地址未对齐".to_string(),
-            5 => "加载访问故障".to_string(),
-            6 => "存储/原子地址未对齐".to_string(),
-            7 => "存储/原子访问故障".to_string(),
-            8 => "来自用户模式的环境调用".to_string(),
-            9 => "来自监管者模式的环境调用".to_string(),
-            11 => "来自机器模式的环境调用".to_string(),
-            12 => "指令页面故障".to_string(),
-            13 => "加载页面故障".to_string(),
-            15 => "存储/原子页面故障".to_string(),
-            _ => format!("未知异常 (代码={})", exception_code),
+            0 => "Instruction address misaligned".to_string(),
+            1 => "Instruction access fault".to_string(),
+            2 => "Illegal instruction".to_string(),
+            3 => "Breakpoint".to_string(),
+            4 => "Load address misaligned".to_string(),
+            5 => "Load access fault".to_string(),
+            6 => "Store/AMO address misaligned".to_string(),
+            7 => "Store/AMO access fault".to_string(),
+            8 => "Environment call from U-mode".to_string(),
+            9 => "Environment call from S-mode".to_string(),
+            11 => "Environment call from M-mode".to_string(),
+            12 => "Instruction page fault".to_string(),
+            13 => "Load page fault".to_string(),
+            15 => "Store/AMO page fault".to_string(),
+            _ => format!("Unknown exception (code={})", exception_code),
         }
     }
 }
 
-/// 获取寄存器的详细描述
+/// Get detailed register description
 pub fn get_register_description(reg_num: usize) -> &'static str {
     match reg_num {
-        0 => "零寄存器 (总是为0)",
-        1 => "返回地址寄存器",
-        2 => "栈指针寄存器",
-        3 => "全局指针寄存器",
-        4 => "线程指针寄存器",
-        5..=7 => "临时寄存器",
-        8 => "帧指针/保存寄存器",
-        9 => "保存寄存器",
-        10..=11 => "函数参数/返回值寄存器",
-        12..=17 => "函数参数寄存器",
-        18..=27 => "保存寄存器",
-        28..=31 => "临时寄存器",
-        _ => "无效寄存器",
+        0 => "Zero register (always 0)",
+        1 => "Return address register",
+        2 => "Stack pointer register",
+        3 => "Global pointer register",
+        4 => "Thread pointer register",
+        5..=7 => "Temporary register",
+        8 => "Frame pointer/Saved register",
+        9 => "Saved register",
+        10..=11 => "Function argument/return value register",
+        12..=17 => "Function argument register",
+        18..=27 => "Saved register",
+        28..=31 => "Temporary register",
+        _ => "Invalid register",
     }
 }
 
-/// 获取浮点寄存器的ABI名称
+/// Get floating-point register ABI name
 pub fn get_float_register_name(reg_num: usize) -> String {
     match reg_num {
         0..=7 => format!("ft{}", reg_num),
@@ -106,50 +106,50 @@ pub fn get_float_register_name(reg_num: usize) -> String {
     }
 }
 
-/// 获取浮点寄存器的详细描述
+/// Get detailed floating-point register description
 pub fn get_float_register_description(reg_num: usize) -> &'static str {
     match reg_num {
-        0..=7 => "临时浮点寄存器",
-        8..=9 => "保存浮点寄存器",
-        10..=17 => "浮点参数/返回值寄存器",
-        18..=27 => "保存浮点寄存器",
-        28..=31 => "临时浮点寄存器",
-        _ => "无效浮点寄存器",
+        0..=7 => "Temporary floating-point register",
+        8..=9 => "Saved floating-point register",
+        10..=17 => "Floating-point argument/return value register",
+        18..=27 => "Saved floating-point register",
+        28..=31 => "Temporary floating-point register",
+        _ => "Invalid floating-point register",
     }
 }
 
-/// 格式化十六进制值为易读格式
+/// Format hexadecimal value to human-readable format
 pub fn format_hex_value(value: u64) -> String {
     format!("0x{:016X}", value)
 }
 
-/// 获取CSR寄存器的详细描述
+/// Get detailed CSR register description
 pub fn get_csr_description(csr_name: &str) -> &'static str {
     match csr_name {
-        "mstatus" => "机器状态寄存器 - 控制全局中断使能、特权级别等",
-        "misa" => "机器ISA寄存器 - 指示支持的指令集扩展",
-        "medeleg" => "机器异常委托寄存器 - 控制异常的委托",
-        "mideleg" => "机器中断委托寄存器 - 控制中断的委托",
-        "mie" => "机器中断使能寄存器 - 控制各种中断的使能",
-        "mtvec" => "机器陷阱向量基地址寄存器 - 异常和中断的处理地址",
-        "mcounteren" => "机器计数器使能寄存器 - 控制性能计数器的访问",
-        "mscratch" => "机器临时寄存器 - 用于保存临时数据",
-        "mepc" => "机器异常程序计数器 - 保存异常发生时的PC",
-        "mcause" => "机器陷阱原因寄存器 - 指示异常或中断的原因",
-        "mtval" => "机器陷阱值寄存器 - 保存异常相关的地址或指令",
-        "mip" => "机器中断挂起寄存器 - 显示当前挂起的中断",
-        "mcycle" => "机器周期计数器 - 记录CPU周期数",
-        "minstret" => "机器指令退役计数器 - 记录已执行的指令数",
-        "mvendorid" => "机器厂商ID寄存器 - 标识硬件厂商",
-        "marchid" => "机器架构ID寄存器 - 标识微架构",
-        "mimpid" => "机器实现ID寄存器 - 标识具体实现版本",
-        "mhartid" => "机器硬件线程ID寄存器 - 标识当前hart",
-        "fcsr" => "浮点控制和状态寄存器 - 控制浮点运算模式和异常",
-        _ => "未知CSR寄存器",
+        "mstatus" => "Machine status register - controls global interrupt enable, privilege level, etc.",
+        "misa" => "Machine ISA register - indicates supported instruction set extensions",
+        "medeleg" => "Machine exception delegation register - controls exception delegation",
+        "mideleg" => "Machine interrupt delegation register - controls interrupt delegation",
+        "mie" => "Machine interrupt enable register - controls various interrupt enables",
+        "mtvec" => "Machine trap vector base address register - exception and interrupt handler address",
+        "mcounteren" => "Machine counter enable register - controls performance counter access",
+        "mscratch" => "Machine scratch register - used to save temporary data",
+        "mepc" => "Machine exception program counter - saves PC when exception occurs",
+        "mcause" => "Machine trap cause register - indicates exception or interrupt cause",
+        "mtval" => "Machine trap value register - saves exception-related address or instruction",
+        "mip" => "Machine interrupt pending register - shows currently pending interrupts",
+        "mcycle" => "Machine cycle counter - records CPU cycle count",
+        "minstret" => "Machine instructions retired counter - records executed instruction count",
+        "mvendorid" => "Machine vendor ID register - identifies hardware vendor",
+        "marchid" => "Machine architecture ID register - identifies microarchitecture",
+        "mimpid" => "Machine implementation ID register - identifies specific implementation version",
+        "mhartid" => "Machine hardware thread ID register - identifies current hart",
+        "fcsr" => "Floating-point control and status register - controls floating-point operation mode and exceptions",
+        _ => "Unknown CSR register",
     }
 }
 
-/// 生成当前时间戳
+/// Generate current timestamp
 pub fn get_current_timestamp() -> String {
     chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC").to_string()
 }

@@ -16,18 +16,18 @@ use crate::{
     },
 }; // Added import
 
-/// 调试输出中的单个解析项
+/// Debug output single parsing item
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum DebugExecutionOutputItem {
-    /// 标记
+    /// Marker
     Marker(MarkerType, usize), // MarkerType, Position
-    /// 寄存器转储信息 (不含完整数据，仅元信息)
+    /// Register dump info (not full data, just metadata)
     RegisterDumpInfo(MarkerType, usize, usize), // MarkerType, RegisterCount, Position
-    /// 异常信息 (不含完整数据，仅元信息)
+    /// Exception info (not full data, just metadata)
     ExceptionInfo(ExceptionCSRs, usize), // ExceptionCSRs, Position
-    /// 文本
+    /// Text
     Text(String),
-    /// 未知数据块
+    /// Unknown data block
     Unknown(usize, usize), // Length, Position
 }
 
@@ -35,28 +35,28 @@ impl fmt::Display for DebugExecutionOutputItem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DebugExecutionOutputItem::Marker(marker_type, pos) => {
-                write!(f, "标记 @{}: {:?}", pos, marker_type)
+                write!(f, "Marker @{}: {:?}", pos, marker_type)
             }
             DebugExecutionOutputItem::RegisterDumpInfo(marker_type, count, pos) => {
                 write!(
                     f,
-                    "寄存器转储信息 @{}: {:?} ({} 个寄存器)",
+                    "Register dump info @{}: {:?} ({} registers)",
                     pos, marker_type, count
                 )
             }
             DebugExecutionOutputItem::ExceptionInfo(csrs, pos) => {
                 write!(
                     f,
-                    "异常信息 @{}: MEPC=0x{:X}, MCAUSE=0x{:X}",
+                    "Exception info @{}: MEPC=0x{:X}, MCAUSE=0x{:X}",
                     pos, csrs.mepc, csrs.mcause
                 )
             }
             DebugExecutionOutputItem::Text(text) => {
-                // 移除省略，完整显示文本内容
-                write!(f, "文本: \"{}\"", text.replace('\n', "\\n"))
+                // Remove truncation, show complete text content
+                write!(f, "Text: \"{}\"", text.replace('\n', "\\n"))
             }
             DebugExecutionOutputItem::Unknown(len, pos) => {
-                write!(f, "未知数据 @{}: {} 字节", pos, len)
+                write!(f, "Unknown data @{}: {} bytes", pos, len)
             }
         }
     }
@@ -64,15 +64,15 @@ impl fmt::Display for DebugExecutionOutputItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DebugExecutionOutput {
-    /// 模拟器类型
+    /// Emulator type
     pub emulator_type: EmulatorType,
-    /// 原始数据长度
+    /// Raw data length
     pub raw_data_length: usize,
-    /// 解析到的调试项
+    /// Parsed debug items
     pub parsed_debug_items: Vec<DebugExecutionOutputItem>,
-    /// 有效的寄存器转储
+    /// Valid register dumps
     pub register_dumps: Vec<RegistersDump>,
-    /// 总转储数（包括有效和无效）
+    /// Total dump count (including valid and invalid)
     pub total_dumps: usize,
 }
 
@@ -169,36 +169,36 @@ pub fn parse_debug_output_from_file<P: AsRef<Path>>(
 
 impl fmt::Display for DebugExecutionOutput {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 🔧 RISC-V 调试执行输出")?;
+        writeln!(f, "# 🔧 RISC-V Debug Execution Output")?;
         writeln!(f)?;
-        writeln!(f, "**模拟器类型:** `{}`", self.emulator_type)?;
+        writeln!(f, "**Emulator Type:** `{}`", self.emulator_type)?;
         writeln!(f)?;
 
-        // 基本信息表格
-        writeln!(f, "## 📊 基本信息")?;
+        // Basic information table
+        writeln!(f, "## 📊 Basic Information")?;
         writeln!(f)?;
-        writeln!(f, "| 项目 | 数值 |")?;
-        writeln!(f, "|------|------|")?;
-        writeln!(f, "| 原始数据长度 | `{} 字节` |", self.raw_data_length)?;
+        writeln!(f, "| Item | Value |")?;
+        writeln!(f, "|------|-------|")?;
+        writeln!(f, "| Raw Data Length | `{} bytes` |", self.raw_data_length)?;
         writeln!(
             f,
-            "| 解析的调试项数量 | `{}` |",
+            "| Parsed Debug Item Count | `{}` |",
             self.parsed_debug_items.len()
         )?;
         writeln!(
             f,
-            "| 有效寄存器转储数量 | `{}` |",
+            "| Valid Register Dump Count | `{}` |",
             self.register_dumps.len()
         )?;
-        writeln!(f, "| 遇到的总转储标记数 | `{}` |", self.total_dumps)?;
+        writeln!(f, "| Total Dump Markers Encountered | `{}` |", self.total_dumps)?;
         writeln!(f)?;
 
-        // 调试项详情
+        // Debug item details
         if !self.parsed_debug_items.is_empty() {
-            writeln!(f, "## 📋 `{}` 解析的调试项", self.emulator_type)?;
+            writeln!(f, "## 📋 `{}` Parsed Debug Items", self.emulator_type)?;
             writeln!(f)?;
 
-            // 统计不同类型的调试项
+            // Count different types of debug items
             let mut marker_count = 0;
             let mut register_info_count = 0;
             let mut exception_info_count = 0;
@@ -215,35 +215,35 @@ impl fmt::Display for DebugExecutionOutput {
                 }
             }
 
-            writeln!(f, "### 📈 调试项类型统计")?;
+            writeln!(f, "### 📈 Debug Item Type Statistics")?;
             writeln!(f)?;
-            writeln!(f, "| 类型 | 数量 | 描述 |")?;
-            writeln!(f, "|------|------|------|")?;
-            writeln!(f, "| 🔻 标记项 | `{}` | 数据段标记 |", marker_count)?;
+            writeln!(f, "| Type | Count | Description |")?;
+            writeln!(f, "|------|-------|-------------|")?;
+            writeln!(f, "| 🔻 Marker Items | `{}` | Data segment markers |", marker_count)?;
             writeln!(
                 f,
-                "| 📋 寄存器转储信息 | `{}` | 寄存器转储元信息 |",
+                "| 📋 Register Dump Info | `{}` | Register dump metadata |",
                 register_info_count
             )?;
             writeln!(
                 f,
-                "| 🚨 异常信息 | `{}` | 异常和中断信息 |",
+                "| 🚨 Exception Info | `{}` | Exception and interrupt info |",
                 exception_info_count
             )?;
-            writeln!(f, "| 📝 文本项 | `{}` | 可读文本输出 |", text_count)?;
-            writeln!(f, "| ❓ 未知数据 | `{}` | 未识别的数据块 |", unknown_count)?;
+            writeln!(f, "| 📝 Text Items | `{}` | Readable text output |", text_count)?;
+            writeln!(f, "| ❓ Unknown Data | `{}` | Unrecognized data blocks |", unknown_count)?;
             writeln!(f)?;
 
-            writeln!(f, "### 🔍 调试项详情 (完整列表)")?;
+            writeln!(f, "### 🔍 Debug Item Details (Complete List)")?;
             writeln!(f)?;
 
-            // 完整显示所有调试项，不省略
+            // Show all debug items completely without truncation
             for (i, item) in self.parsed_debug_items.iter().enumerate() {
                 match item {
                     DebugExecutionOutputItem::Marker(marker_type, pos) => {
                         writeln!(
                             f,
-                            "**[{}]** 🔻 **标记:** `{:?}` @位置`{}`",
+                            "**[{}]** 🔻 **Marker:** `{:?}` @position`{}`",
                             i + 1,
                             marker_type,
                             pos
@@ -252,7 +252,7 @@ impl fmt::Display for DebugExecutionOutput {
                     DebugExecutionOutputItem::RegisterDumpInfo(marker_type, count, pos) => {
                         writeln!(
                             f,
-                            "**[{}]** 📋 **寄存器转储信息:** `{:?}` ({} 个寄存器) @位置`{}`",
+                            "**[{}]** 📋 **Register Dump Info:** `{:?}` ({} registers) @position`{}`",
                             i + 1,
                             marker_type,
                             count,
@@ -262,7 +262,7 @@ impl fmt::Display for DebugExecutionOutput {
                     DebugExecutionOutputItem::ExceptionInfo(csrs, pos) => {
                         writeln!(
                             f,
-                            "**[{}]** 🚨 **异常信息:** MEPC=`0x{:X}`, MCAUSE=`0x{:X}` @位置`{}`",
+                            "**[{}]** 🚨 **Exception Info:** MEPC=`0x{:X}`, MCAUSE=`0x{:X}` @position`{}`",
                             i + 1,
                             csrs.mepc,
                             csrs.mcause,
@@ -270,13 +270,13 @@ impl fmt::Display for DebugExecutionOutput {
                         )?;
                     }
                     DebugExecutionOutputItem::Text(text) => {
-                        // 完整显示文本内容，不省略
-                        writeln!(f, "**[{}]** 📝 **文本:** `{}`", i + 1, text)?;
+                        // Show complete text content without truncation
+                        writeln!(f, "**[{}]** 📝 **Text:** `{}`", i + 1, text)?;
                     }
                     DebugExecutionOutputItem::Unknown(len, pos) => {
                         writeln!(
                             f,
-                            "**[{}]** ❓ **未知数据:** `{} 字节` @位置`{}`",
+                            "**[{}]** ❓ **Unknown Data:** `{} bytes` @position`{}`",
                             i + 1,
                             len,
                             pos
@@ -287,43 +287,43 @@ impl fmt::Display for DebugExecutionOutput {
             writeln!(f)?;
         }
 
-        // 有效寄存器转储详情
+        // Valid register dump details
         if !self.register_dumps.is_empty() {
-            writeln!(f, "## 📝 `{}` 有效寄存器转储", self.emulator_type)?;
+            writeln!(f, "## 📝 `{}` Valid Register Dumps", self.emulator_type)?;
             writeln!(f)?;
-            writeln!(f, "**总计:** `{} 个有效转储`", self.register_dumps.len())?;
+            writeln!(f, "**Total:** `{} valid dumps`", self.register_dumps.len())?;
             writeln!(f)?;
 
-            // 完整显示所有转储，不省略
+            // Show all dumps completely without truncation
             for (i, dump) in self.register_dumps.iter().enumerate() {
-                writeln!(f, "### 📊 转储 #{} (位置: `{}`)", i + 1, dump.position)?;
+                writeln!(f, "### 📊 Dump #{} (Position: `{}`)", i + 1, dump.position)?;
                 writeln!(f)?;
-                writeln!(f, "**转储类型:** `{:?}`", dump.dump_type)?;
+                writeln!(f, "**Dump Type:** `{:?}`", dump.dump_type)?;
                 writeln!(f)?;
 
-                // 关键寄存器概览 - 显示所有寄存器
-                writeln!(f, "#### 🎯 所有整数寄存器")?;
+                // Key register overview - show all registers
+                writeln!(f, "#### 🎯 All Integer Registers")?;
                 writeln!(f)?;
-                writeln!(f, "| 寄存器 | ABI名称 | 值 | 描述 |")?;
-                writeln!(f, "|--------|---------|----|----- |")?;
+                writeln!(f, "| Register | ABI Name | Value | Description |")?;
+                writeln!(f, "|----------|----------|-------|-------------|")?;
 
                 for reg_idx in 0..32 {
                     let reg_name = get_register_name(reg_idx);
                     let value = dump.int_registers[reg_idx];
                     let description = match reg_idx {
-                        0 => "零寄存器",
-                        1 => "返回地址",
-                        2 => "栈指针",
-                        3 => "全局指针",
-                        4 => "线程指针",
-                        5..=7 => "临时寄存器",
-                        8 => "帧指针/保存寄存器",
-                        9 => "保存寄存器",
-                        10..=11 => "函数参数/返回值",
-                        12..=17 => "函数参数",
-                        18..=27 => "保存寄存器",
-                        28..=31 => "临时寄存器",
-                        _ => "未知寄存器",
+                        0 => "Zero register",
+                        1 => "Return address",
+                        2 => "Stack pointer",
+                        3 => "Global pointer",
+                        4 => "Thread pointer",
+                        5..=7 => "Temporary register",
+                        8 => "Frame pointer/Saved register",
+                        9 => "Saved register",
+                        10..=11 => "Function argument/return value",
+                        12..=17 => "Function argument",
+                        18..=27 => "Saved register",
+                        28..=31 => "Temporary register",
+                        _ => "Unknown register",
                     };
 
                     writeln!(
@@ -334,109 +334,109 @@ impl fmt::Display for DebugExecutionOutput {
                 }
                 writeln!(f)?;
 
-                // 核心CSR概览 - 显示所有CSR
-                writeln!(f, "#### ⚙️ 所有核心CSR")?;
+                // Core CSR overview - show all CSRs
+                writeln!(f, "#### ⚙️ All Core CSRs")?;
                 writeln!(f)?;
-                writeln!(f, "| CSR | 值 | 描述 |")?;
-                writeln!(f, "|-----|-----|----- |")?;
+                writeln!(f, "| CSR | Value | Description |")?;
+                writeln!(f, "|-----|-------|-------------|")?;
                 writeln!(
                     f,
-                    "| `mstatus` | `0x{:016X}` | 机器状态寄存器 |",
+                    "| `mstatus` | `0x{:016X}` | Machine status register |",
                     dump.core_csrs.mstatus
                 )?;
                 writeln!(
                     f,
-                    "| `misa` | `0x{:016X}` | ISA和扩展 |",
+                    "| `misa` | `0x{:016X}` | ISA and extensions |",
                     dump.core_csrs.misa
                 )?;
                 writeln!(
                     f,
-                    "| `medeleg` | `0x{:016X}` | 机器异常委托 |",
+                    "| `medeleg` | `0x{:016X}` | Machine exception delegation |",
                     dump.core_csrs.medeleg
                 )?;
                 writeln!(
                     f,
-                    "| `mideleg` | `0x{:016X}` | 机器中断委托 |",
+                    "| `mideleg` | `0x{:016X}` | Machine interrupt delegation |",
                     dump.core_csrs.mideleg
                 )?;
                 writeln!(
                     f,
-                    "| `mie` | `0x{:016X}` | 机器中断使能 |",
+                    "| `mie` | `0x{:016X}` | Machine interrupt enable |",
                     dump.core_csrs.mie
                 )?;
                 writeln!(
                     f,
-                    "| `mtvec` | `0x{:016X}` | 机器陷阱向量基地址 |",
+                    "| `mtvec` | `0x{:016X}` | Machine trap vector base address |",
                     dump.core_csrs.mtvec
                 )?;
                 writeln!(
                     f,
-                    "| `mcounteren` | `0x{:016X}` | 机器计数器使能 |",
+                    "| `mcounteren` | `0x{:016X}` | Machine counter enable |",
                     dump.core_csrs.mcounteren
                 )?;
                 writeln!(
                     f,
-                    "| `mscratch` | `0x{:016X}` | 机器临时寄存器 |",
+                    "| `mscratch` | `0x{:016X}` | Machine scratch register |",
                     dump.core_csrs.mscratch
                 )?;
                 writeln!(
                     f,
-                    "| `mepc` | `0x{:016X}` | 机器异常程序计数器 |",
+                    "| `mepc` | `0x{:016X}` | Machine exception program counter |",
                     dump.core_csrs.mepc
                 )?;
                 writeln!(
                     f,
-                    "| `mcause` | `0x{:016X}` | 机器陷阱原因 |",
+                    "| `mcause` | `0x{:016X}` | Machine trap cause |",
                     dump.core_csrs.mcause
                 )?;
                 writeln!(
                     f,
-                    "| `mtval` | `0x{:016X}` | 机器坏地址或指令 |",
+                    "| `mtval` | `0x{:016X}` | Machine bad address or instruction |",
                     dump.core_csrs.mtval
                 )?;
                 writeln!(
                     f,
-                    "| `mip` | `0x{:016X}` | 机器中断挂起 |",
+                    "| `mip` | `0x{:016X}` | Machine interrupt pending |",
                     dump.core_csrs.mip
                 )?;
                 writeln!(
                     f,
-                    "| `mcycle` | `0x{:016X}` | 机器周期计数器 |",
+                    "| `mcycle` | `0x{:016X}` | Machine cycle counter |",
                     dump.core_csrs.mcycle
                 )?;
                 writeln!(
                     f,
-                    "| `minstret` | `0x{:016X}` | 机器指令退役计数器 |",
+                    "| `minstret` | `0x{:016X}` | Machine instructions retired counter |",
                     dump.core_csrs.minstret
                 )?;
                 writeln!(
                     f,
-                    "| `mvendorid` | `0x{:016X}` | 厂商ID |",
+                    "| `mvendorid` | `0x{:016X}` | Vendor ID |",
                     dump.core_csrs.mvendorid
                 )?;
                 writeln!(
                     f,
-                    "| `marchid` | `0x{:016X}` | 架构ID |",
+                    "| `marchid` | `0x{:016X}` | Architecture ID |",
                     dump.core_csrs.marchid
                 )?;
                 writeln!(
                     f,
-                    "| `mimpid` | `0x{:016X}` | 实现ID |",
+                    "| `mimpid` | `0x{:016X}` | Implementation ID |",
                     dump.core_csrs.mimpid
                 )?;
                 writeln!(
                     f,
-                    "| `mhartid` | `0x{:016X}` | 硬件线程ID |",
+                    "| `mhartid` | `0x{:016X}` | Hardware thread ID |",
                     dump.core_csrs.mhartid
                 )?;
                 writeln!(f)?;
 
-                // 浮点寄存器详情 - 显示所有浮点寄存器
+                // Floating-point register details - show all floating-point registers
                 if let Some(float_regs) = &dump.float_registers {
-                    writeln!(f, "#### 🔣 所有浮点寄存器")?;
+                    writeln!(f, "#### 🔣 All Floating-Point Registers")?;
                     writeln!(f)?;
-                    writeln!(f, "| 寄存器 | 值 |")?;
-                    writeln!(f, "|--------|-----|")?;
+                    writeln!(f, "| Register | Value |")?;
+                    writeln!(f, "|----------|-------|")?;
                     for (i, &val) in float_regs.iter().enumerate() {
                         writeln!(f, "| `f{}` | `0x{:016X}` |", i, val)?;
                     }
@@ -444,22 +444,22 @@ impl fmt::Display for DebugExecutionOutput {
                 }
 
                 if let Some(fcsr) = dump.float_csr {
-                    writeln!(f, "**浮点CSR:** `fcsr = 0x{:016X}`", fcsr)?;
+                    writeln!(f, "**Floating-Point CSR:** `fcsr = 0x{:016X}`", fcsr)?;
                     writeln!(f)?;
                 }
 
-                // 统计信息
+                // Statistics
                 let non_zero_int = dump
                     .int_registers
                     .iter()
                     .skip(1)
                     .filter(|&&x| x != 0)
                     .count();
-                writeln!(f, "> **统计信息:** 非零整数寄存器: `{}/31`", non_zero_int)?;
+                writeln!(f, "> **Statistics:** Non-zero integer registers: `{}/31`", non_zero_int)?;
 
                 if let Some(float_regs) = &dump.float_registers {
                     let non_zero_float = float_regs.iter().filter(|&&x| x != 0).count();
-                    writeln!(f, "> 非零浮点寄存器: `{}/32`", non_zero_float)?;
+                    writeln!(f, "> Non-zero floating-point registers: `{}/32`", non_zero_float)?;
                 }
                 writeln!(f)?;
 
@@ -468,20 +468,20 @@ impl fmt::Display for DebugExecutionOutput {
                 }
             }
         } else {
-            writeln!(f, "## 📝 `{}` 有效寄存器转储", self.emulator_type)?;
+            writeln!(f, "## 📝 `{}` Valid Register Dumps", self.emulator_type)?;
             writeln!(f)?;
-            writeln!(f, "> ❌ **无有效寄存器转储**")?;
+            writeln!(f, "> ❌ **No valid register dumps**")?;
             writeln!(f)?;
         }
 
-        // 数据分析统计
-        writeln!(f, "## 📈 数据分析统计")?;
+        // Data analysis statistics
+        writeln!(f, "## 📈 Data Analysis Statistics")?;
         writeln!(f)?;
-        writeln!(f, "| 统计项 | 数值 |")?;
-        writeln!(f, "|--------|------|")?;
+        writeln!(f, "| Statistics Item | Value |")?;
+        writeln!(f, "|-----------------|-------|")?;
         writeln!(
             f,
-            "| 转储效率 | `{:.1}%` ({}/{} 个转储有效) |",
+            "| Dump Efficiency | `{:.1}%` ({}/{} dumps valid) |",
             if self.total_dumps > 0 {
                 (self.register_dumps.len() as f64 / self.total_dumps as f64) * 100.0
             } else {
@@ -491,7 +491,7 @@ impl fmt::Display for DebugExecutionOutput {
             self.total_dumps
         )?;
 
-        // 数据类型分布
+        // Data type distribution
         let total_items = self.parsed_debug_items.len();
         if total_items > 0 {
             let marker_ratio = self
@@ -501,14 +501,14 @@ impl fmt::Display for DebugExecutionOutput {
                 .count() as f64
                 / total_items as f64
                 * 100.0;
-            writeln!(f, "| 标记占比 | `{:.1}%` |", marker_ratio)?;
+            writeln!(f, "| Marker Ratio | `{:.1}%` |", marker_ratio)?;
         }
         writeln!(f)?;
 
         writeln!(f, "---")?;
         writeln!(
             f,
-            "*生成时间: {}",
+            "*Generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 
@@ -516,7 +516,7 @@ impl fmt::Display for DebugExecutionOutput {
     }
 }
 
-/// 格式化debug输出结果为可读字符串
+/// Format debug output result as readable string
 pub fn format_debug_output(output: &DebugExecutionOutput) -> String {
     let mut result = String::new();
 
@@ -538,7 +538,7 @@ pub fn format_debug_output(output: &DebugExecutionOutput) -> String {
         ));
         result.push_str(&format!("  Type: {:?}\n", dump.dump_type));
 
-        // 显示寄存器值
+        // Display register values
         result.push_str("  Integer registers:\n");
         for j in 0..32 {
             if j % 4 == 0 && j > 0 {

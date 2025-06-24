@@ -27,11 +27,11 @@ impl ConversionStatsDiff {
 
 impl fmt::Display for ConversionStatsDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 转换统计差异")?;
+        writeln!(f, "# Conversion Statistics Diff")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "转换统计中未发现差异")?;
+            writeln!(f, "No differences found in conversion statistics")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -39,13 +39,13 @@ impl fmt::Display for ConversionStatsDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "| 统计项 | {} | {} | 差异 |", sim1_name, sim2_name)?;
-        writeln!(f, "|--------|------------|------------|------|")?;
+        writeln!(f, "| Statistics | {} | {} | Difference |", sim1_name, sim2_name)?;
+        writeln!(f, "|------------|------------|------------|------------|")?;
 
         if let Some((v1, v2)) = self.original_exception_count_changed {
             writeln!(
                 f,
-                "| 原始异常计数 | {} | {} | {} |",
+                "| Original Exception Count | {} | {} | {} |",
                 v1,
                 v2,
                 (v2 as i64 - v1 as i64).abs()
@@ -55,7 +55,7 @@ impl fmt::Display for ConversionStatsDiff {
         if let Some((v1, v2)) = self.original_register_count_changed {
             writeln!(
                 f,
-                "| 原始寄存器计数 | {} | {} | {} |",
+                "| Original Register Count | {} | {} | {} |",
                 v1,
                 v2,
                 (v2 as i64 - v1 as i64).abs()
@@ -63,21 +63,21 @@ impl fmt::Display for ConversionStatsDiff {
         }
 
         if let Some((v1, v2)) = self.conversion_successful_changed {
-            let status1 = if v1 { "成功" } else { "失败" };
-            let status2 = if v2 { "成功" } else { "失败" };
+            let status1 = if v1 { "Success" } else { "Failed" };
+            let status2 = if v2 { "Success" } else { "Failed" };
             writeln!(
                 f,
-                "| 转换成功状态 | {} | {} | {} |",
+                "| Conversion Success Status | {} | {} | {} |",
                 status1,
                 status2,
-                if v1 != v2 { "不同" } else { "相同" }
+                if v1 != v2 { "Different" } else { "Same" }
             )?;
         }
 
         if let Some((v1, v2)) = &self.warnings_changed {
             writeln!(
                 f,
-                "| 警告数量 | {} | {} | {} |",
+                "| Warning Count | {} | {} | {} |",
                 v1.len(),
                 v2.len(),
                 (v2.len() as i64 - v1.len() as i64).abs()
@@ -85,14 +85,14 @@ impl fmt::Display for ConversionStatsDiff {
         }
         writeln!(f)?;
 
-        // 警告详情
+        // Warning details
         if let Some((v1, v2)) = &self.warnings_changed {
             if !v1.is_empty() || !v2.is_empty() {
-                writeln!(f, "## 警告详情")?;
+                writeln!(f, "## Warning Details")?;
                 writeln!(f)?;
 
                 if !v1.is_empty() {
-                    writeln!(f, "### {} 警告", sim1_name)?;
+                    writeln!(f, "### {} Warnings", sim1_name)?;
                     writeln!(f)?;
                     for (i, warning) in v1.iter().enumerate() {
                         writeln!(f, "{}. {}", i + 1, warning)?;
@@ -101,7 +101,7 @@ impl fmt::Display for ConversionStatsDiff {
                 }
 
                 if !v2.is_empty() {
-                    writeln!(f, "### {} 警告", sim2_name)?;
+                    writeln!(f, "### {} Warnings", sim2_name)?;
                     writeln!(f)?;
                     for (i, warning) in v2.iter().enumerate() {
                         writeln!(f, "{}. {}", i + 1, warning)?;
@@ -145,70 +145,70 @@ impl fmt::Display for StandardExecutionOutputDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "# 标准执行输出差异报告")?;
+        writeln!(f, "# Standard Execution Output Diff Report")?;
         writeln!(f)?;
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "## 差异结果")?;
+            writeln!(f, "## Diff Result")?;
             writeln!(f)?;
-            writeln!(f, "未发现显著差异 - 两个模拟器的标准输出完全匹配！")?;
+            writeln!(f, "No significant differences found - standard outputs from both simulators match exactly!")?;
             writeln!(f)?;
             return Ok(());
         }
 
-        writeln!(f, "## 检测到差异")?;
+        writeln!(f, "## Detected Differences")?;
         writeln!(f)?;
 
-        // 差异汇总表格
+        // Difference summary table
         let mut diff_count = 0;
-        writeln!(f, "| 差异类型 | 数量 |")?;
+        writeln!(f, "| Diff Type | Count |")?;
         writeln!(f, "|----------|------|")?;
 
         if self.register_dump_status.is_some() || self.register_dump_diff.is_some() {
             diff_count += 1;
-            writeln!(f, "| 寄存器转储 | 转储状态或内容存在差异 |")?;
+            writeln!(f, "| Register Dump | Dump status or content differs |")?;
         }
 
         if self.exceptions_diff.is_some() {
             diff_count += 1;
-            writeln!(f, "| 异常差异 | 异常信息存在差异 |")?;
+            writeln!(f, "| Exception Diff | Exception information differs |")?;
         }
 
         if self.conversion_stats_diff.is_some() {
             diff_count += 1;
-            writeln!(f, "| 转换统计 | 转换过程统计存在差异 |")?;
+            writeln!(f, "| Conversion Stats | Conversion process statistics differ |")?;
         }
 
         if diff_count == 0 {
-            writeln!(f, "| - | 无差异 |")?;
+            writeln!(f, "| - | No Differences |")?;
         }
         writeln!(f)?;
 
-        // 详细差异信息
-        writeln!(f, "## 详细差异分析")?;
+        // Detailed difference information
+        writeln!(f, "## Detailed Diff Analysis")?;
         writeln!(f)?;
 
         if let Some(status) = &self.register_dump_status {
-            writeln!(f, "### 寄存器转储状态差异")?;
+            writeln!(f, "### Register Dump Status Difference")?;
             writeln!(f)?;
             let updated_status = status
                 .replace(
-                    "Present in 1, Absent in 2",
-                    &format!("在{}中存在，在{}中缺失", sim1_name, sim2_name),
+                    &format!("Present in {}, Absent in {}", sim1_name, sim2_name),
+                    &format!("Present in {}, Absent in {}", sim1_name, sim2_name),
                 )
                 .replace(
-                    "Absent in 1, Present in 2",
-                    &format!("在{}中缺失，在{}中存在", sim1_name, sim2_name),
+                    &format!("Absent in {}, Present in {}", sim1_name, sim2_name),
+                    &format!("Absent in {}, Present in {}", sim1_name, sim2_name),
                 );
-            writeln!(f, "状态: {}", updated_status)?;
+            writeln!(f, "Status: {}", updated_status)?;
             writeln!(f)?;
         }
 
         if let Some(reg_diff) = &self.register_dump_diff {
             if !reg_diff.is_empty() {
-                writeln!(f, "### 寄存器转储内容差异")?;
+                writeln!(f, "### Register Dump Content Differences")?;
                 writeln!(f)?;
                 writeln!(f, "{}", reg_diff)?;
                 writeln!(f)?;
@@ -217,7 +217,7 @@ impl fmt::Display for StandardExecutionOutputDiff {
 
         if let Some(ex_diff) = &self.exceptions_diff {
             if !ex_diff.is_empty() {
-                writeln!(f, "### 异常差异详情")?;
+                writeln!(f, "### Exception Difference Details")?;
                 writeln!(f)?;
                 writeln!(f, "{}", ex_diff)?;
                 writeln!(f)?;
@@ -226,7 +226,7 @@ impl fmt::Display for StandardExecutionOutputDiff {
 
         if let Some(stats_diff) = &self.conversion_stats_diff {
             if !stats_diff.is_empty() {
-                writeln!(f, "### 转换统计差异详情")?;
+                writeln!(f, "### Conversion Statistics Difference Details")?;
                 writeln!(f)?;
                 writeln!(f, "{}", stats_diff)?;
                 writeln!(f)?;
@@ -236,7 +236,7 @@ impl fmt::Display for StandardExecutionOutputDiff {
         writeln!(f, "---")?;
         writeln!(
             f,
-            "标准差异报告生成时间: {}",
+            "Standard diff report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 
@@ -314,13 +314,13 @@ pub fn compare_standard_execution_outputs(
         }
         (Some(_), None) => {
             diff.register_dump_status = Some(format!(
-                "在{}中存在，在{}中缺失",
+                "Present in {}, Absent in {}",
                 output1.emulator_type, output2.emulator_type
             ));
         }
         (None, Some(_)) => {
             diff.register_dump_status = Some(format!(
-                "在{}中缺失，在{}中存在",
+                "Absent in {}, Present in {}",
                 output1.emulator_type, output2.emulator_type
             ));
         }

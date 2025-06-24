@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use log::info;
 use log::warn;
 use rayon::prelude::*;
+use riscv_fuzz_test::consts::linker_script::LINKER_SCRIPT;
 use riscv_fuzz_test::consts::rocket::RV64_ROCKET_SUPPORTED_EXTENSIONS;
 use riscv_fuzz_test::elf::build::build_elf;
 use riscv_fuzz_test::emulators::{EmulatorType, OutputFormat, run_emulator, run_single_emulator};
@@ -263,7 +264,7 @@ fn process_assembly_file(
     format: OutputFormat, // Added format parameter
     auto_retry: bool,     // Added auto_retry parameter
 ) -> Result<()> {
-    let linker_script = PathBuf::from("assets/linker.ld");
+    let linker_script = get_or_create_linker_script(assembly_file)?;
 
     // 编译汇编文件
     let build_result = build_elf(assembly_file, &linker_script, march_string)?;
@@ -356,8 +357,9 @@ fn process_assembly_file(
                             &illegal_instructions,
                         )?;
 
+                        let new_linker_script = get_or_create_linker_script(&new_assembly_file)?;
                         let new_build_result =
-                            build_elf(&new_assembly_file, &linker_script, march_string)?;
+                            build_elf(&new_assembly_file, &new_linker_script, march_string)?;
 
                         // Re-run emulators for retry
                         info!("🏃 Re-running Spike emulator for retry...");
@@ -567,6 +569,26 @@ fn process_assembly_file(
     Ok(())
 }
 
+/// 获取或创建链接脚本文件
+fn get_or_create_linker_script(assembly_file: &PathBuf) -> Result<PathBuf> {
+    let assembly_dir = assembly_file
+        .parent()
+        .ok_or_else(|| RiscvFuzzError::file("Cannot determine directory of assembly file"))?;
+
+    let linker_script_path = assembly_dir.join("linker.ld");
+
+    // 如果链接脚本不存在，创建默认的
+    if !linker_script_path.exists() {
+        fs::write(&linker_script_path, LINKER_SCRIPT)?;
+        info!(
+            "📝 Created default linker script at: {:?}",
+            linker_script_path
+        );
+    }
+
+    Ok(linker_script_path)
+}
+
 /// 检查是否存在整数或浮点寄存器差异
 fn has_register_differences(reg_diff: &RegistersDumpDiff) -> bool {
     !reg_diff.int_registers_diff.is_empty() || !reg_diff.float_registers_diff.is_empty()
@@ -649,7 +671,7 @@ fn run_minimal_analysis(
     march_string: &str,
     retry_diff: &StandardExecutionOutputDiff, // 传递rocket retry的差异结果
 ) -> Result<()> {
-    let linker_script = PathBuf::from("assets/linker.ld");
+    let linker_script = get_or_create_linker_script(assembly_file)?;
 
     info!("🔬 Building minimal analysis ELF...");
     let build_result = build_elf(assembly_file, &linker_script, march_string)?;

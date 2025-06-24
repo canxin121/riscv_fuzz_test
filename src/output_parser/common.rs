@@ -12,45 +12,45 @@ use crate::output_parser::util;
 use crate::{error::Result, output_parser::OutputParser, emulators::EmulatorType};
 
 // --- Moved from common.rs ---
-/// 程序执行输出的解析结果
+/// Program execution output parsing result
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommonExecutionOutput {
-    /// 模拟器类型
+    /// Emulator type
     pub emulator_type: EmulatorType,
-    /// 原始数据长度
+    /// Raw data length
     pub raw_data_length: usize,
-    /// 解析到的所有输出项
+    /// All parsed output items
     pub output_items: Vec<OutputItem>,
-    /// 寄存器转储（如果有）
+    /// Register dumps (if any)
     pub register_dumps: Vec<RegistersDump>,
-    /// 异常CSR转储（如果有）
+    /// Exception CSR dumps (if any)
     pub exception_dumps: Vec<ExceptionDump>,
 }
 
 impl fmt::Display for CommonExecutionOutput {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 🔍 RISC-V 通用执行输出解析结果")?;
+        writeln!(f, "# 🔍 RISC-V Common Execution Output Analysis")?;
         writeln!(f)?;
-        writeln!(f, "**模拟器类型:** `{}`", self.emulator_type)?;
+        writeln!(f, "**Emulator Type:** `{}`", self.emulator_type)?;
         writeln!(f)?;
         
-        // 基本信息表格
-        writeln!(f, "## 📊 基本信息")?;
+        // Basic information table
+        writeln!(f, "## 📊 Basic Information")?;
         writeln!(f)?;
-        writeln!(f, "| 项目 | 数值 |")?;
-        writeln!(f, "|------|------|")?;
-        writeln!(f, "| 原始数据大小 | `{} 字节` |", self.raw_data_length)?;
-        writeln!(f, "| 输出项总数 | `{}` |", self.output_items.len())?;
-        writeln!(f, "| 寄存器转储数量 | `{}` |", self.register_dumps.len())?;
-        writeln!(f, "| 异常转储数量 | `{}` |", self.exception_dumps.len())?;
+        writeln!(f, "| Item | Value |")?;
+        writeln!(f, "|------|-------|")?;
+        writeln!(f, "| Raw Data Size | `{} bytes` |", self.raw_data_length)?;
+        writeln!(f, "| Total Output Items | `{}` |", self.output_items.len())?;
+        writeln!(f, "| Register Dump Count | `{}` |", self.register_dumps.len())?;
+        writeln!(f, "| Exception Dump Count | `{}` |", self.exception_dumps.len())?;
         writeln!(f)?;
 
-        // 输出项详情
+        // Output item details
         if !self.output_items.is_empty() {
-            writeln!(f, "## 📋 输出项详情")?;
+            writeln!(f, "## 📋 Output Item Details")?;
             writeln!(f)?;
 
-            // 统计各种类型的输出项
+            // Count various types of output items
             let mut ascii_count = 0;
             let mut marker_count = 0;
             let mut register_data_count = 0;
@@ -67,26 +67,26 @@ impl fmt::Display for CommonExecutionOutput {
                 }
             }
 
-            writeln!(f, "### 📈 类型统计")?;
+            writeln!(f, "### 📈 Type Statistics")?;
             writeln!(f)?;
-            writeln!(f, "| 类型 | 数量 | 描述 |")?;
-            writeln!(f, "|------|------|------|")?;
-            writeln!(f, "| 📝 ASCII文本项 | `{}` | 可读文本输出 |", ascii_count)?;
-            writeln!(f, "| 🔻 魔数标记项 | `{}` | 数据段标记 |", marker_count)?;
-            writeln!(f, "| 📋 寄存器数据项 | `{}` | 寄存器转储数据 |", register_data_count)?;
-            writeln!(f, "| 🚨 异常数据项 | `{}` | 异常和中断信息 |", exception_data_count)?;
-            writeln!(f, "| ❓ 未知二进制项 | `{}` | 未识别的二进制数据 |", unknown_binary_count)?;
+            writeln!(f, "| Type | Count | Description |")?;
+            writeln!(f, "|------|-------|-------------|")?;
+            writeln!(f, "| 📝 ASCII Text Items | `{}` | Readable text output |", ascii_count)?;
+            writeln!(f, "| 🔻 Magic Marker Items | `{}` | Data segment markers |", marker_count)?;
+            writeln!(f, "| 📋 Register Data Items | `{}` | Register dump data |", register_data_count)?;
+            writeln!(f, "| 🚨 Exception Data Items | `{}` | Exception and interrupt info |", exception_data_count)?;
+            writeln!(f, "| ❓ Unknown Binary Items | `{}` | Unrecognized binary data |", unknown_binary_count)?;
             writeln!(f)?;
 
-            // 显示所有输出项，不省略
-            writeln!(f, "### 🔍 项目详情 (完整列表)")?;
+            // Show all output items without truncation
+            writeln!(f, "### 🔍 Item Details (Complete List)")?;
             writeln!(f)?;
 
             for (i, item) in self.output_items.iter().enumerate() {
                 match item {
                     OutputItem::AsciiText(text) => {
-                        // 不省略文本内容
-                        writeln!(f, "**[{}]** 📝 **ASCII文本:** `{}`", i + 1, text)?;
+                        // Don't truncate text content
+                        writeln!(f, "**[{}]** 📝 **ASCII Text:** `{}`", i + 1, text)?;
                     }
                     OutputItem::MagicMarker {
                         marker,
@@ -95,7 +95,7 @@ impl fmt::Display for CommonExecutionOutput {
                     } => {
                         writeln!(
                             f,
-                            "**[{}]** 🔻 **标记:** `{}` (`0x{:016X}`) @位置`{}`",
+                            "**[{}]** 🔻 **Marker:** `{}` (`0x{:016X}`) @position`{}`",
                             i + 1,
                             marker_type,
                             marker,
@@ -109,7 +109,7 @@ impl fmt::Display for CommonExecutionOutput {
                     } => {
                         writeln!(
                             f,
-                            "**[{}]** 📋 **寄存器:** `{}` ({} 个寄存器) @位置`{}`",
+                            "**[{}]** 📋 **Registers:** `{}` ({} registers) @position`{}`",
                             i + 1,
                             marker_type,
                             registers.len(),
@@ -117,12 +117,12 @@ impl fmt::Display for CommonExecutionOutput {
                         )?;
                     }
                     OutputItem::ExceptionData { position, .. } => {
-                        writeln!(f, "**[{}]** 🚨 **异常数据** @位置`{}`", i + 1, position)?;
+                        writeln!(f, "**[{}]** 🚨 **Exception Data** @position`{}`", i + 1, position)?;
                     }
                     OutputItem::UnknownBinary { data, position } => {
                         writeln!(
                             f,
-                            "**[{}]** ❓ **未知数据:** `{} 字节` @位置`{}`",
+                            "**[{}]** ❓ **Unknown Data:** `{} bytes` @position`{}`",
                             i + 1,
                             data.len(),
                             position
@@ -133,40 +133,40 @@ impl fmt::Display for CommonExecutionOutput {
             writeln!(f)?;
         }
 
-        // 寄存器转储详情 - 显示所有转储，不省略
+        // Register dump details - show all dumps without truncation
         if !self.register_dumps.is_empty() {
-            writeln!(f, "## 📋 `{}` 寄存器转储详情", self.emulator_type)?;
+            writeln!(f, "## 📋 `{}` Register Dump Details", self.emulator_type)?;
             writeln!(f)?;
 
             for (i, dump) in self.register_dumps.iter().enumerate() {
-                writeln!(f, "### 📊 寄存器转储 #{} (位置: `{}`)", i + 1, dump.position)?;
+                writeln!(f, "### 📊 Register Dump #{} (Position: `{}`)", i + 1, dump.position)?;
                 writeln!(f)?;
-                writeln!(f, "**转储类型:** `{}`", dump.dump_type)?;
+                writeln!(f, "**Dump Type:** `{}`", dump.dump_type)?;
                 writeln!(f)?;
 
-                // 显示所有整数寄存器
-                writeln!(f, "#### 🔢 所有整数寄存器 (x0-x31)")?;
+                // Show all integer registers
+                writeln!(f, "#### 🔢 All Integer Registers (x0-x31)")?;
                 writeln!(f)?;
-                writeln!(f, "| 寄存器 | ABI名称 | 值 | 描述 |")?;
-                writeln!(f, "|--------|---------|----|----- |")?;
+                writeln!(f, "| Register | ABI Name | Value | Description |")?;
+                writeln!(f, "|----------|----------|-------|-------------|")?;
                 
                 for reg_idx in 0..32 {
                     let reg_name = util::get_register_name(reg_idx);
                     let value = dump.int_registers[reg_idx];
 
                     let description = match reg_idx {
-                        0 => "零寄存器",
-                        1 => "返回地址",
-                        2 => "栈指针",
-                        3 => "全局指针",
-                        4 => "线程指针",
-                        5..=7 => "临时寄存器",
-                        8 => "帧指针/保存寄存器",
-                        9 => "保存寄存器",
-                        10..=11 => "函数参数/返回值",
-                        12..=17 => "函数参数",
-                        18..=27 => "保存寄存器",
-                        28..=31 => "临时寄存器",
+                        0 => "Zero register",
+                        1 => "Return address",
+                        2 => "Stack pointer",
+                        3 => "Global pointer",
+                        4 => "Thread pointer",
+                        5..=7 => "Temporary register",
+                        8 => "Frame pointer/Saved register",
+                        9 => "Saved register",
+                        10..=11 => "Function argument/return value",
+                        12..=17 => "Function argument",
+                        18..=27 => "Saved register",
+                        28..=31 => "Temporary register",
                         _ => unreachable!(),
                     };
 
@@ -178,45 +178,45 @@ impl fmt::Display for CommonExecutionOutput {
                 }
                 writeln!(f)?;
 
-                // 显示所有核心CSR寄存器
-                writeln!(f, "#### ⚙️ 所有核心CSR寄存器")?;
+                // Show all core CSR registers
+                writeln!(f, "#### ⚙️ All Core CSR Registers")?;
                 writeln!(f)?;
-                writeln!(f, "| CSR寄存器 | 值 | 描述 |")?;
-                writeln!(f, "|-----------|----|----- |")?;
-                writeln!(f, "| `mstatus` | `0x{:016X}` | 机器状态寄存器 |", dump.core_csrs.mstatus)?;
-                writeln!(f, "| `misa` | `0x{:016X}` | ISA和扩展 |", dump.core_csrs.misa)?;
-                writeln!(f, "| `medeleg` | `0x{:016X}` | 机器异常委托 |", dump.core_csrs.medeleg)?;
-                writeln!(f, "| `mideleg` | `0x{:016X}` | 机器中断委托 |", dump.core_csrs.mideleg)?;
-                writeln!(f, "| `mie` | `0x{:016X}` | 机器中断使能 |", dump.core_csrs.mie)?;
-                writeln!(f, "| `mtvec` | `0x{:016X}` | 机器陷阱向量基地址 |", dump.core_csrs.mtvec)?;
-                writeln!(f, "| `mcounteren` | `0x{:016X}` | 机器计数器使能 |", dump.core_csrs.mcounteren)?;
-                writeln!(f, "| `mscratch` | `0x{:016X}` | 机器临时寄存器 |", dump.core_csrs.mscratch)?;
-                writeln!(f, "| `mepc` | `0x{:016X}` | 机器异常程序计数器 |", dump.core_csrs.mepc)?;
-                writeln!(f, "| `mcause` | `0x{:016X}` | 机器陷阱原因 |", dump.core_csrs.mcause)?;
-                writeln!(f, "| `mtval` | `0x{:016X}` | 机器坏地址或指令 |", dump.core_csrs.mtval)?;
-                writeln!(f, "| `mip` | `0x{:016X}` | 机器中断挂起 |", dump.core_csrs.mip)?;
-                writeln!(f, "| `mcycle` | `0x{:016X}` | 机器周期计数器 |", dump.core_csrs.mcycle)?;
-                writeln!(f, "| `minstret` | `0x{:016X}` | 机器指令退役计数器 |", dump.core_csrs.minstret)?;
-                writeln!(f, "| `mvendorid` | `0x{:016X}` | 厂商ID |", dump.core_csrs.mvendorid)?;
-                writeln!(f, "| `marchid` | `0x{:016X}` | 架构ID |", dump.core_csrs.marchid)?;
-                writeln!(f, "| `mimpid` | `0x{:016X}` | 实现ID |", dump.core_csrs.mimpid)?;
-                writeln!(f, "| `mhartid` | `0x{:016X}` | 硬件线程ID |", dump.core_csrs.mhartid)?;
+                writeln!(f, "| CSR Register | Value | Description |")?;
+                writeln!(f, "|--------------|-------|-------------|")?;
+                writeln!(f, "| `mstatus` | `0x{:016X}` | Machine status register |", dump.core_csrs.mstatus)?;
+                writeln!(f, "| `misa` | `0x{:016X}` | ISA and extensions |", dump.core_csrs.misa)?;
+                writeln!(f, "| `medeleg` | `0x{:016X}` | Machine exception delegation |", dump.core_csrs.medeleg)?;
+                writeln!(f, "| `mideleg` | `0x{:016X}` | Machine interrupt delegation |", dump.core_csrs.mideleg)?;
+                writeln!(f, "| `mie` | `0x{:016X}` | Machine interrupt enable |", dump.core_csrs.mie)?;
+                writeln!(f, "| `mtvec` | `0x{:016X}` | Machine trap vector base address |", dump.core_csrs.mtvec)?;
+                writeln!(f, "| `mcounteren` | `0x{:016X}` | Machine counter enable |", dump.core_csrs.mcounteren)?;
+                writeln!(f, "| `mscratch` | `0x{:016X}` | Machine scratch register |", dump.core_csrs.mscratch)?;
+                writeln!(f, "| `mepc` | `0x{:016X}` | Machine exception program counter |", dump.core_csrs.mepc)?;
+                writeln!(f, "| `mcause` | `0x{:016X}` | Machine trap cause |", dump.core_csrs.mcause)?;
+                writeln!(f, "| `mtval` | `0x{:016X}` | Machine bad address or instruction |", dump.core_csrs.mtval)?;
+                writeln!(f, "| `mip` | `0x{:016X}` | Machine interrupt pending |", dump.core_csrs.mip)?;
+                writeln!(f, "| `mcycle` | `0x{:016X}` | Machine cycle counter |", dump.core_csrs.mcycle)?;
+                writeln!(f, "| `minstret` | `0x{:016X}` | Machine instructions retired counter |", dump.core_csrs.minstret)?;
+                writeln!(f, "| `mvendorid` | `0x{:016X}` | Vendor ID |", dump.core_csrs.mvendorid)?;
+                writeln!(f, "| `marchid` | `0x{:016X}` | Architecture ID |", dump.core_csrs.marchid)?;
+                writeln!(f, "| `mimpid` | `0x{:016X}` | Implementation ID |", dump.core_csrs.mimpid)?;
+                writeln!(f, "| `mhartid` | `0x{:016X}` | Hardware thread ID |", dump.core_csrs.mhartid)?;
                 writeln!(f)?;
 
-                // 显示所有浮点寄存器（如果存在）
+                // Show all floating-point registers (if present)
                 if let Some(float_regs) = &dump.float_registers {
-                    writeln!(f, "#### 🔣 所有浮点寄存器 (f0-f31)")?;
+                    writeln!(f, "#### 🔣 All Floating-Point Registers (f0-f31)")?;
                     writeln!(f)?;
-                    writeln!(f, "| 寄存器 | ABI名称 | 值 | 描述 |")?;
-                    writeln!(f, "|--------|---------|----|----- |")?;
+                    writeln!(f, "| Register | ABI Name | Value | Description |")?;
+                    writeln!(f, "|----------|----------|-------|-------------|")?;
                     
                     for reg_idx in 0..32 {
                         let (reg_abi_name, description) = match reg_idx {
-                            0..=7 => (format!("ft{}", reg_idx), "临时浮点寄存器"),
-                            8..=9 => (format!("fs{}", reg_idx - 8), "保存浮点寄存器"),
-                            10..=17 => (format!("fa{}", reg_idx - 10), "浮点参数/返回值"),
-                            18..=27 => (format!("fs{}", reg_idx - 18 + 2), "保存浮点寄存器"),
-                            28..=31 => (format!("ft{}", reg_idx - 28 + 8), "临时浮点寄存器"),
+                            0..=7 => (format!("ft{}", reg_idx), "Temporary floating-point register"),
+                            8..=9 => (format!("fs{}", reg_idx - 8), "Saved floating-point register"),
+                            10..=17 => (format!("fa{}", reg_idx - 10), "Floating-point argument/return value"),
+                            18..=27 => (format!("fs{}", reg_idx - 18 + 2), "Saved floating-point register"),
+                            28..=31 => (format!("ft{}", reg_idx - 28 + 8), "Temporary floating-point register"),
                             _ => unreachable!(),
                         };
 
@@ -229,23 +229,23 @@ impl fmt::Display for CommonExecutionOutput {
                     writeln!(f)?;
 
                     if let Some(fcsr) = dump.float_csr {
-                        writeln!(f, "**浮点控制和状态寄存器:** `fcsr = 0x{:016X}`", fcsr)?;
+                        writeln!(f, "**Floating-Point Control and Status Register:** `fcsr = 0x{:016X}`", fcsr)?;
                         writeln!(f)?;
                     }
                 }
 
-                // 统计信息
+                // Statistics
                 let non_zero_int = dump
                     .int_registers
                     .iter()
                     .skip(1)
                     .filter(|&&x| x != 0)
                     .count();
-                writeln!(f, "> **统计信息:** 非零整数寄存器: `{}/31`", non_zero_int)?;
+                writeln!(f, "> **Statistics:** Non-zero integer registers: `{}/31`", non_zero_int)?;
 
                 if let Some(float_regs) = &dump.float_registers {
                     let non_zero_float = float_regs.iter().filter(|&&x| x != 0).count();
-                    writeln!(f, "> 非零浮点寄存器: `{}/32`", non_zero_float)?;
+                    writeln!(f, "> Non-zero floating-point registers: `{}/32`", non_zero_float)?;
                 }
                 writeln!(f)?;
 
@@ -255,39 +255,39 @@ impl fmt::Display for CommonExecutionOutput {
             }
         }
 
-        // 异常转储详情 - 显示所有异常，不省略
+        // Exception dump details - show all exceptions without truncation
         if !self.exception_dumps.is_empty() {
-            writeln!(f, "## 🚨 `{}` 异常转储详情", self.emulator_type)?;
+            writeln!(f, "## 🚨 `{}` Exception Dump Details", self.emulator_type)?;
             writeln!(f)?;
 
             for (i, dump) in self.exception_dumps.iter().enumerate() {
                 let exception_desc = util::get_exception_description(dump.csrs.mcause);
                 let is_interrupt = (dump.csrs.mcause >> 63) & 1 == 1;
-                let exception_type = if is_interrupt { "中断" } else { "异常" };
+                let exception_type = if is_interrupt { "Interrupt" } else { "Exception" };
 
-                writeln!(f, "### ⚡ 异常转储 #{} (位置: `{}`)", i + 1, dump.position)?;
+                writeln!(f, "### ⚡ Exception Dump #{} (Position: `{}`)", i + 1, dump.position)?;
                 writeln!(f)?;
-                writeln!(f, "**异常PC:** `0x{:016X}`", dump.csrs.mepc)?;
+                writeln!(f, "**Exception PC:** `0x{:016X}`", dump.csrs.mepc)?;
                 if let Some(trace) = &dump.inst_trace {
-                    writeln!(f, "**溯源指令:** `{}`", trace.disassembly)?;
-                    writeln!(f, "**机器码:** `{}`", trace.machine_code)?;
-                    writeln!(f, "**原始指令:** `{}`", trace.original_instruction)?;
+                    writeln!(f, "**Traced Instruction:** `{}`", trace.disassembly)?;
+                    writeln!(f, "**Machine Code:** `{}`", trace.machine_code)?;
+                    writeln!(f, "**Original Instruction:** `{}`", trace.original_instruction)?;
                 }
-                writeln!(f, "**类型:** `{}` ({})", exception_desc, exception_type)?;
+                writeln!(f, "**Type:** `{}` ({})", exception_desc, exception_type)?;
                 writeln!(f)?;
 
-                writeln!(f, "#### CSR详情")?;
+                writeln!(f, "#### CSR Details")?;
                 writeln!(f)?;
-                writeln!(f, "| CSR寄存器 | 值 | 描述 |")?;
-                writeln!(f, "|-----------|----|----- |")?;
+                writeln!(f, "| CSR Register | Value | Description |")?;
+                writeln!(f, "|--------------|-------|-------------|")?;
                 writeln!(f, "| `mcause` | `0x{:016X}` | {} |", dump.csrs.mcause, exception_desc)?;
-                writeln!(f, "| `mtval` | `0x{:016X}` | 机器坏地址或指令 |", dump.csrs.mtval)?;
-                writeln!(f, "| `mstatus` | `0x{:016X}` | 机器状态寄存器 |", dump.csrs.mstatus)?;
-                writeln!(f, "| `mtvec` | `0x{:016X}` | 机器陷阱向量基地址 |", dump.csrs.mtvec)?;
-                writeln!(f, "| `mie` | `0x{:016X}` | 机器中断使能 |", dump.csrs.mie)?;
-                writeln!(f, "| `mip` | `0x{:016X}` | 机器中断挂起 |", dump.csrs.mip)?;
-                writeln!(f, "| `mscratch` | `0x{:016X}` | 机器临时寄存器 |", dump.csrs.mscratch)?;
-                writeln!(f, "| `mhartid` | `0x{:016X}` | 硬件线程ID |", dump.csrs.mhartid)?;
+                writeln!(f, "| `mtval` | `0x{:016X}` | Machine bad address or instruction |", dump.csrs.mtval)?;
+                writeln!(f, "| `mstatus` | `0x{:016X}` | Machine status register |", dump.csrs.mstatus)?;
+                writeln!(f, "| `mtvec` | `0x{:016X}` | Machine trap vector base address |", dump.csrs.mtvec)?;
+                writeln!(f, "| `mie` | `0x{:016X}` | Machine interrupt enable |", dump.csrs.mie)?;
+                writeln!(f, "| `mip` | `0x{:016X}` | Machine interrupt pending |", dump.csrs.mip)?;
+                writeln!(f, "| `mscratch` | `0x{:016X}` | Machine scratch register |", dump.csrs.mscratch)?;
+                writeln!(f, "| `mhartid` | `0x{:016X}` | Hardware thread ID |", dump.csrs.mhartid)?;
                 writeln!(f)?;
 
                 if i < self.exception_dumps.len() - 1 {
@@ -296,8 +296,8 @@ impl fmt::Display for CommonExecutionOutput {
             }
         }
 
-        // 数据分析统计（保持不变）
-        writeln!(f, "## 📈 数据分析统计")?;
+        // Data analysis statistics
+        writeln!(f, "## 📈 Data Analysis Statistics")?;
         writeln!(f)?;
 
         let total_ascii_chars: usize = self
@@ -318,16 +318,16 @@ impl fmt::Display for CommonExecutionOutput {
             })
             .sum();
 
-        writeln!(f, "| 统计项 | 数值 |")?;
-        writeln!(f, "|--------|------|")?;
+        writeln!(f, "| Statistics Item | Value |")?;
+        writeln!(f, "|-----------------|-------|")?;
         if total_ascii_chars > 0 {
-            writeln!(f, "| 📝 ASCII文本总字符数 | `{}` |", total_ascii_chars)?;
+            writeln!(f, "| 📝 Total ASCII Character Count | `{}` |", total_ascii_chars)?;
         }
         if total_binary_bytes > 0 {
-            writeln!(f, "| ❓ 未知二进制数据总字节数 | `{}` |", total_binary_bytes)?;
+            writeln!(f, "| ❓ Total Unknown Binary Data Bytes | `{}` |", total_binary_bytes)?;
         }
 
-        // 异常类型统计
+        // Exception type statistics
         if !self.exception_dumps.is_empty() {
             use std::collections::HashMap;
             let mut exception_types: HashMap<String, usize> = HashMap::new();
@@ -341,17 +341,17 @@ impl fmt::Display for CommonExecutionOutput {
             sorted_types.sort_by(|a, b| b.1.cmp(&a.1));
 
             writeln!(f)?;
-            writeln!(f, "### 🚨 异常类型分布")?;
+            writeln!(f, "### 🚨 Exception Type Distribution")?;
             writeln!(f)?;
-            writeln!(f, "| 异常类型 | 出现次数 |")?;
-            writeln!(f, "|----------|----------|")?;
+            writeln!(f, "| Exception Type | Occurrence Count |")?;
+            writeln!(f, "|----------------|------------------|")?;
             for (exception_type, count) in sorted_types {
                 writeln!(f, "| {} | `{}` |", exception_type, count)?;
             }
             writeln!(f)?;
         }
 
-        // 寄存器转储类型统计
+        // Register dump type statistics
         if !self.register_dumps.is_empty() {
             let int_only_count = self
                 .register_dumps
@@ -364,20 +364,20 @@ impl fmt::Display for CommonExecutionOutput {
                 .filter(|d| matches!(d.dump_type, MarkerType::RegistersIntAndFloat))
                 .count();
 
-            writeln!(f, "### 📋 寄存器转储类型分布")?;
+            writeln!(f, "### 📋 Register Dump Type Distribution")?;
             writeln!(f)?;
-            writeln!(f, "| 转储类型 | 数量 |")?;
-            writeln!(f, "|----------|------|")?;
+            writeln!(f, "| Dump Type | Count |")?;
+            writeln!(f, "|-----------|-------|")?;
             if int_only_count > 0 {
-                writeln!(f, "| 仅整数寄存器 | `{}` |", int_only_count)?;
+                writeln!(f, "| Integer Registers Only | `{}` |", int_only_count)?;
             }
             if int_float_count > 0 {
-                writeln!(f, "| 整数+浮点寄存器 | `{}` |", int_float_count)?;
+                writeln!(f, "| Integer + Floating-Point Registers | `{}` |", int_float_count)?;
             }
             writeln!(f)?;
         }
 
-        // 数据覆盖率分析
+        // Data coverage analysis
         let parsed_bytes = self
             .output_items
             .iter()
@@ -398,11 +398,11 @@ impl fmt::Display for CommonExecutionOutput {
             0.0
         };
 
-        writeln!(f, "| 📊 数据覆盖率 | `{:.1}%` ({}/{} 字节) |", coverage_ratio, parsed_bytes, self.raw_data_length)?;
+        writeln!(f, "| 📊 Data Coverage Rate | `{:.1}%` ({}/{} bytes) |", coverage_ratio, parsed_bytes, self.raw_data_length)?;
         writeln!(f)?;
 
         writeln!(f, "---")?;
-        writeln!(f, "*生成时间: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"))?;
+        writeln!(f, "*Generated at: {}", chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC"))?;
 
         Ok(())
     }
@@ -421,32 +421,32 @@ impl OutputParser for CommonExecutionOutput {
 
 
 
-/// 输出项类型
+/// Output item type
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OutputItem {
-    /// ASCII文本输出
+    /// ASCII text output
     AsciiText(String),
-    /// 魔数标记
+    /// Magic marker
     MagicMarker {
         marker: u64,
         marker_type: MarkerType,
         position: usize,
     },
-    /// 寄存器转储数据
+    /// Register dump data
     RegisterData {
         marker_type: MarkerType,
         registers: Vec<u64>,
         position: usize,
     },
-    /// 异常CSR转储数据
+    /// Exception CSR dump data
     ExceptionData {
         csrs: ExceptionCSRs,
         position: usize,
     },
-    /// 未知二进制数据
+    /// Unknown binary data
     UnknownBinary { data: Vec<u8>, position: usize },
 }
-/// 从文件解析执行输出
+/// Parse execution output from file
 pub fn parse_common_output_from_file<P: AsRef<Path>>(
     log_path: P,
     dump_path: P,
@@ -467,7 +467,7 @@ pub fn parse_common_output_from_file<P: AsRef<Path>>(
     );
     let mut result = parse_common_binary_data(&data, emulator_type)?;
 
-    // 如果有异常，尝试从ELF dump中溯源指令
+    // If there are exceptions, try to trace instructions from ELF dump
     if !result.exception_dumps.is_empty() {
         if dump_path.as_ref().exists() {
             debug!(
@@ -496,7 +496,7 @@ pub fn parse_common_output_from_file<P: AsRef<Path>>(
     Ok(result)
 }
 
-/// 解析二进制数据
+/// Parse binary data
 pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Result<CommonExecutionOutput> {
     let mut result = CommonExecutionOutput {
         emulator_type,
@@ -513,7 +513,7 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
     let mut pos = 0;
     
     while pos < data.len() {
-        // 尝试找到可打印的ASCII文本
+        // Try to find printable ASCII text
         if let Some((text, consumed)) = try_parse_ascii_text(&data[pos..]) {
             if !text.is_empty() {
                 debug!("📝 Found ASCII text at position {}: {:?}", pos, text);
@@ -523,7 +523,7 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
             continue;
         }
 
-        // 尝试解析8字节的魔数标记
+        // Try to parse 8-byte magic marker
         if pos + 8 <= data.len() {
             let potential_marker = read_u64_le(&data[pos..pos + 8]);
             
@@ -539,7 +539,7 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
                 
                 pos += 8;
                 
-                // 根据标记类型解析后续数据
+                // Parse subsequent data based on marker type
                 match marker_type {
                     MarkerType::RegistersIntOnly => {
                         if let Some((registers, core_csrs, consumed)) = parse_int_registers(&data[pos..]) {
@@ -613,12 +613,12 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
                         }
                     },
                     MarkerType::Unknown(_) => {
-                        // 对于未知标记，跳过
+                        // Skip unknown markers
                     }
                 }
                 continue;
             } else if looks_like_marker(potential_marker) {
-                // 可能是未知的标记
+                // Possibly unknown marker
                 debug!("❓ Found potential unknown marker 0x{:016X} at position {}", 
                        potential_marker, pos);
                 result.output_items.push(OutputItem::MagicMarker {
@@ -631,7 +631,7 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
             }
         }
 
-        // 如果无法识别，作为未知二进制数据处理
+        // If unrecognizable, treat as unknown binary data
         let chunk_size = std::cmp::min(8, data.len() - pos);
         let chunk = data[pos..pos + chunk_size].to_vec();
         result.output_items.push(OutputItem::UnknownBinary {
@@ -651,7 +651,7 @@ pub fn parse_common_binary_data(data: &[u8], emulator_type: EmulatorType) -> Res
     Ok(result)
 }
 
-/// 获取标记类型
+/// Get marker type
 fn get_marker_type(marker: u64) -> Option<MarkerType> {
     match marker {
         MARKER_REGISTERS_INT_ONLY => Some(MarkerType::RegistersIntOnly),
@@ -661,24 +661,24 @@ fn get_marker_type(marker: u64) -> Option<MarkerType> {
     }
 }
 
-/// 尝试解析ASCII文本
+/// Try to parse ASCII text
 fn try_parse_ascii_text(data: &[u8]) -> Option<(String, usize)> {
     let mut text_end = 0;
     let mut has_printable = false;
     
     for (i, &byte) in data.iter().enumerate() {
         if byte == 0 {
-            // 遇到null终止符，结束文本
+            // Found null terminator, end text
             text_end = i + 1;
             break;
         } else if byte.is_ascii() && (byte.is_ascii_graphic() || byte.is_ascii_whitespace()) {
             has_printable = true;
             text_end = i + 1;
         } else if byte < 32 && byte != b'\n' && byte != b'\r' && byte != b'\t' {
-            // 遇到控制字符（除了常见的换行符），结束文本
+            // Found control character (except common newlines), end text
             break;
         } else if byte > 127 {
-            // 遇到非ASCII字符，结束文本
+            // Found non-ASCII character, end text
             break;
         } else {
             text_end = i + 1;
@@ -687,7 +687,7 @@ fn try_parse_ascii_text(data: &[u8]) -> Option<(String, usize)> {
     
     if text_end > 0 && has_printable {
         let text_bytes = &data[..text_end];
-        // 移除尾部的null字节
+        // Remove trailing null bytes
         let text_bytes = if text_bytes.last() == Some(&0) {
             &text_bytes[..text_bytes.len() - 1]
         } else {
@@ -702,7 +702,7 @@ fn try_parse_ascii_text(data: &[u8]) -> Option<(String, usize)> {
     None
 }
 
-/// 解析32个整数寄存器 (256字节)
+/// Parse 32 integer registers (256 bytes)
 fn parse_int_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, usize)> {
     if data.len() < 400 {
         return None;
@@ -714,7 +714,7 @@ fn parse_int_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, usize)> {
         registers[i] = read_u64_le(&data[offset..offset + 8]);
     }
     
-    // 解析核心CSRs (从偏移256开始)
+    // Parse core CSRs (starting from offset 256)
     let core_csrs = CoreCSRs {
         mstatus: read_u64_le(&data[256..264]),
         misa: read_u64_le(&data[264..272]),
@@ -740,7 +740,7 @@ fn parse_int_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, usize)> {
     Some((registers, core_csrs, 400))
 }
 
-/// 解析32个整数寄存器 + 核心CSRs + 浮点寄存器 + 浮点CSR (664字节)
+/// Parse 32 integer registers + core CSRs + floating-point registers + floating-point CSR (664 bytes)
 fn parse_int_and_float_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, [u64; 32], u64, usize)> {
     if data.len() < 664 {
         return None;
@@ -752,7 +752,7 @@ fn parse_int_and_float_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, [u
         int_registers[i] = read_u64_le(&data[offset..offset + 8]);
     }
     
-    // 解析核心CSRs (从偏移256开始)
+    // Parse core CSRs (starting from offset 256)
     let core_csrs = CoreCSRs {
         mstatus: read_u64_le(&data[256..264]),
         misa: read_u64_le(&data[264..272]),
@@ -774,10 +774,10 @@ fn parse_int_and_float_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, [u
         mhartid: read_u64_le(&data[392..400]),
     };
     
-    // 解析浮点CSR (偏移400)
+    // Parse floating-point CSR (offset 400)
     let fcsr = read_u64_le(&data[400..408]);
     
-    // 解析浮点寄存器 (从偏移408开始)
+    // Parse floating-point registers (starting from offset 408)
     let mut float_registers = [0u64; 32];
     for i in 0..32 {
         let offset = 408 + i * 8;
@@ -788,7 +788,7 @@ fn parse_int_and_float_registers(data: &[u8]) -> Option<([u64; 32], CoreCSRs, [u
     Some((int_registers, core_csrs, float_registers, fcsr, 664))
 }
 
-/// 解析异常CSR (72字节)
+/// Parse exception CSRs (72 bytes)
 fn parse_exception_csrs(data: &[u8]) -> Option<(ExceptionCSRs, usize)> {
     if data.len() < 72 {
         return None;
@@ -812,22 +812,22 @@ fn parse_exception_csrs(data: &[u8]) -> Option<(ExceptionCSRs, usize)> {
     Some((csrs, 72))
 }
 
-/// 判断是否看起来像魔数标记
+/// Check if it looks like a magic marker
 fn looks_like_marker(value: u64) -> bool {
-    // 简单启发式：检查是否有重复的字节模式或特殊值
+    // Simple heuristic: check for repeated byte patterns or special values
     let bytes = value.to_le_bytes();
     let unique_bytes: std::collections::HashSet<u8> = bytes.iter().cloned().collect();
     
-    // 如果只有1-3个不同的字节值，可能是标记
+    // If only 1-3 different byte values, might be a marker
     unique_bytes.len() <= 3 || 
-    // 或者包含常见的魔数模式
+    // Or contains common magic patterns
     value & 0xFFFFFFFF == 0xDEADBEEF ||
     value & 0xFFFFFFFF == 0xCAFEBABE ||
     value & 0xFFFFFFFF == 0xFEEDFACE ||
     value & 0xFFFFFFFF == 0xBADC0DE
 }
 
-/// 小端序读取64位整数
+/// Little-endian read 64-bit integer
 fn read_u64_le(bytes: &[u8]) -> u64 {
     if bytes.len() < 8 {
         warn!("read_u64_le called with less than 8 bytes ({} bytes)", bytes.len());

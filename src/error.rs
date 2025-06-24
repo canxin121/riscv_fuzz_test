@@ -1,39 +1,39 @@
 use thiserror::Error;
 
-/// 统一的错误类型，涵盖所有可能的错误情况
+/// Unified error type covering all possible error scenarios
 #[derive(Error, Debug)]
 pub enum RiscvFuzzError {
-    #[error("IO操作失败: {0}")]
+    #[error("IO operation failed: {0}")]
     Io(#[from] std::io::Error),
 
-    #[error("文件操作错误: {message}")]
+    #[error("File operation error: {message}")]
     File { message: String },
 
-    #[error("ELF构建失败: {stage} - {details}")]
+    #[error("ELF build failed: {stage} - {details}")]
     ElfBuild { stage: String, details: String },
 
-    #[error("模拟器执行失败: {simulator} - {message}")]
+    #[error("Simulator execution failed: {simulator} - {message}")]
     Simulator { simulator: String, message: String },
 
-    #[error("输出解析失败: {format} - {message}")]
+    #[error("Output parsing failed: {format} - {message}")]
     OutputParsing { format: String, message: String },
 
-    #[error("配置错误: {message}")]
+    #[error("Configuration error: {message}")]
     Config { message: String },
 
-    #[error("指令生成失败: {message}")]
+    #[error("Instruction generation failed: {message}")]
     InstructionGeneration { message: String },
 
-    #[error("差分分析错误: {message}")]
+    #[error("Diff analysis error: {message}")]
     DiffAnalysis { message: String },
 
-    #[error("PC溯源失败: PC=0x{pc:016X} - {message}")]
+    #[error("PC tracing failed: PC=0x{pc:016X} - {message}")]
     PcTracing { pc: u64, message: String },
 
-    #[error("JSON序列化/反序列化失败: {0}")]
+    #[error("JSON serialization/deserialization failed: {0}")]
     Json(#[from] serde_json::Error),
 
-    #[error("系统错误: {message}")]
+    #[error("System error: {message}")]
     System { message: String },
 }
 
@@ -97,5 +97,5 @@ impl RiscvFuzzError {
     }
 }
 
-/// 简化的Result类型别名
+/// Simplified Result type alias
 pub type Result<T> = std::result::Result<T, RiscvFuzzError>;

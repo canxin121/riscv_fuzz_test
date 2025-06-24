@@ -11,12 +11,12 @@ use std::fmt;
 use std::fs;
 use std::path::Path;
 
-// 常量定义
+// Constant definitions
 pub const MARKER_REGISTERS_INT_ONLY: u64 = 0xFEEDC0DE2000;
 pub const MARKER_REGISTERS_INT_AND_FLOAT: u64 = 0xFEEDC0DE1000;
 pub const MARKER_EXCEPTION_CSR: u64 = 0xBADC0DE1000;
 
-/// 寄存器转储结构体
+/// Register dump structure
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct RegistersDump {
     pub dump_type: MarkerType,
@@ -27,7 +27,7 @@ pub struct RegistersDump {
     pub position: usize,
 }
 
-/// 异常转储结构体
+/// Exception dump structure
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ExceptionDump {
     pub csrs: ExceptionCSRs,
@@ -35,7 +35,7 @@ pub struct ExceptionDump {
     pub inst_trace: Option<InstructionTrace>,
 }
 
-// 标记类型枚举
+// Marker type enumeration
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MarkerType {
     RegistersIntOnly,
@@ -47,15 +47,15 @@ pub enum MarkerType {
 impl fmt::Display for MarkerType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            MarkerType::RegistersIntOnly => write!(f, "整数寄存器转储"),
-            MarkerType::RegistersIntAndFloat => write!(f, "整数+浮点寄存器转储"),
-            MarkerType::ExceptionCSR => write!(f, "异常CSR转储"),
-            MarkerType::Unknown(val) => write!(f, "未知标记(0x{:016X})", val),
+            MarkerType::RegistersIntOnly => write!(f, "Integer register dump"),
+            MarkerType::RegistersIntAndFloat => write!(f, "Integer + floating-point register dump"),
+            MarkerType::ExceptionCSR => write!(f, "Exception CSR dump"),
+            MarkerType::Unknown(val) => write!(f, "Unknown marker(0x{:016X})", val),
         }
     }
 }
 
-/// 核心CSR结构体
+/// Core CSR structure
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct CoreCSRs {
     pub mstatus: u64,
@@ -78,7 +78,7 @@ pub struct CoreCSRs {
     pub mhartid: u64,
 }
 
-/// 异常CSR结构体
+/// Exception CSR structure
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ExceptionCSRs {
     pub mstatus: u64,
@@ -92,7 +92,7 @@ pub struct ExceptionCSRs {
     pub mhartid: u64,
 }
 
-/// 输出解析器trait
+/// Output parser trait
 pub trait OutputParser: Sized + std::fmt::Display + Serialize {
     fn parse_from_file<P: AsRef<Path>>(
         log_path: P,
@@ -101,7 +101,7 @@ pub trait OutputParser: Sized + std::fmt::Display + Serialize {
     ) -> Result<Self>;
 }
 
-/// 通用解析函数
+/// Generic parsing function
 pub fn parse_output_from_file<T, P: AsRef<Path>>(
     log_path: P,
     dump_path: P,
@@ -112,12 +112,12 @@ where
 {
     let parsed = T::parse_from_file(&log_path, &dump_path, emulator_type)?;
 
-    // 保存json文件
+    // Save json file
     let json_path = log_path.as_ref().with_extension("json");
     let json_content = serde_json::to_string_pretty(&parsed)?;
     fs::write(&json_path, json_content)?;
 
-    // 保存md文件
+    // Save md file
     let md_path = log_path.as_ref().with_extension("md");
     let md_content = format!("{}", parsed);
     fs::write(&md_path, md_content)?;

@@ -43,11 +43,11 @@ impl ConversionStatsDiffDiff {
 
 impl fmt::Display for ConversionStatsDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 转换统计差异变化报告")?;
+        writeln!(f, "# Conversion Statistics Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "转换统计差异无变化")?;
+            writeln!(f, "No changes in conversion statistics differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -55,199 +55,199 @@ impl fmt::Display for ConversionStatsDiffDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        writeln!(f, "## 变化汇总")?;
+        writeln!(f, "## Change Summary")?;
         writeln!(f)?;
-        writeln!(f, "| 变化项目 | 变化状态 |")?;
-        writeln!(f, "|:---------|:---------:|")?;
+        writeln!(f, "| Change Item | Change Status |")?;
+        writeln!(f, "|:------------|:-------------:|")?;
 
         let mut change_count = 0;
 
         if self.original_exception_count_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 原始异常数量 | 变化 |")?;
+            writeln!(f, "| Original Exception Count | Changed |")?;
         }
 
         if self.original_register_count_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 原始寄存器数量 | 变化 |")?;
+            writeln!(f, "| Original Register Count | Changed |")?;
         }
 
         if self.conversion_successful_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 转换成功状态 | 变化 |")?;
+            writeln!(f, "| Conversion Success Status | Changed |")?;
         }
 
         if self.warnings_changed_diff.is_some() {
             change_count += 1;
-            writeln!(f, "| 警告信息 | 变化 |")?;
+            writeln!(f, "| Warning Information | Changed |")?;
         }
 
         if change_count == 0 {
-            writeln!(f, "| 总计 | 无具体项目变化 |")?;
+            writeln!(f, "| Total | No specific item changes |")?;
         }
         writeln!(f)?;
 
-        writeln!(f, "## 详细变化分析")?;
+        writeln!(f, "## Detailed Change Analysis")?;
         writeln!(f)?;
 
         if let Some(ch) = &self.original_exception_count_changed_diff {
-            writeln!(f, "### 原始异常数量变化")?;
+            writeln!(f, "### Original Exception Count Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 数量 | {} 数量 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:------------:|:------------:|")?;
+            writeln!(f, "| Period | {} Count | {} Count |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:--------:|:--------:|")?;
 
             match (&ch.old, &ch.new) {
                 (Some((old_s1, old_s2)), Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 (None, Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 (Some((old_s1, old_s2)), None) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
                 (None, None) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.original_register_count_changed_diff {
-            writeln!(f, "### 原始寄存器数量变化")?;
+            writeln!(f, "### Original Register Count Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 数量 | {} 数量 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:------------:|:------------:|")?;
+            writeln!(f, "| Period | {} Count | {} Count |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:--------:|:--------:|")?;
 
             match (&ch.old, &ch.new) {
                 (Some((old_s1, old_s2)), Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 (None, Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 (Some((old_s1, old_s2)), None) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
                 (None, None) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.conversion_successful_changed_diff {
-            writeln!(f, "### 转换成功状态变化")?;
+            writeln!(f, "### Conversion Success Status Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 状态 | {} 状态 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:-------------:|:-------------:|")?;
+            writeln!(f, "| Period | {} Status | {} Status |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:---------:|:---------:|")?;
 
             match (&ch.old, &ch.new) {
                 (Some((old_s1, old_s2)), Some((new_s1, new_s2))) => {
                     writeln!(
                         f,
-                        "| 变化前 | {} | {} |",
-                        if *old_s1 { "成功" } else { "失败" },
-                        if *old_s2 { "成功" } else { "失败" }
+                        "| Before | {} | {} |",
+                        if *old_s1 { "Success" } else { "Failed" },
+                        if *old_s2 { "Success" } else { "Failed" }
                     )?;
                     writeln!(
                         f,
-                        "| 变化后 | {} | {} |",
-                        if *new_s1 { "成功" } else { "失败" },
-                        if *new_s2 { "成功" } else { "失败" }
+                        "| After | {} | {} |",
+                        if *new_s1 { "Success" } else { "Failed" },
+                        if *new_s2 { "Success" } else { "Failed" }
                     )?;
                 }
                 (None, Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
                     writeln!(
                         f,
-                        "| 变化后 | {} | {} |",
-                        if *new_s1 { "成功" } else { "失败" },
-                        if *new_s2 { "成功" } else { "失败" }
+                        "| After | {} | {} |",
+                        if *new_s1 { "Success" } else { "Failed" },
+                        if *new_s2 { "Success" } else { "Failed" }
                     )?;
                 }
                 (Some((old_s1, old_s2)), None) => {
                     writeln!(
                         f,
-                        "| 变化前 | {} | {} |",
-                        if *old_s1 { "成功" } else { "失败" },
-                        if *old_s2 { "成功" } else { "失败" }
+                        "| Before | {} | {} |",
+                        if *old_s1 { "Success" } else { "Failed" },
+                        if *old_s2 { "Success" } else { "Failed" }
                     )?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
                 (None, None) => {
-                    writeln!(f, "| 变化前 | N/A | N/A |")?;
-                    writeln!(f, "| 变化后 | N/A | N/A |")?;
+                    writeln!(f, "| Before | N/A | N/A |")?;
+                    writeln!(f, "| After | N/A | N/A |")?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.warnings_changed_diff {
-            writeln!(f, "### 警告信息变化")?;
+            writeln!(f, "### Warning Information Changes")?;
             writeln!(f)?;
 
             match (&ch.old, &ch.new) {
                 (Some((old_w1, old_w2)), Some((new_w1, new_w2))) => {
-                    writeln!(f, "#### {} 警告 (变化前)", sim1_name)?;
+                    writeln!(f, "#### {} Warnings (Before)", sim1_name)?;
                     for warn in old_w1 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化前)", sim2_name)?;
+                    writeln!(f, "#### {} Warnings (Before)", sim2_name)?;
                     for warn in old_w2 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化后)", sim1_name)?;
+                    writeln!(f, "#### {} Warnings (After)", sim1_name)?;
                     for warn in new_w1 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化后)", sim2_name)?;
+                    writeln!(f, "#### {} Warnings (After)", sim2_name)?;
                     for warn in new_w2 {
                         writeln!(f, "- {}", warn)?;
                     }
                 }
                 (Some((old_warnings1, old_warnings2)), None) => {
-                    writeln!(f, "#### {} 警告 (变化前)", sim1_name)?;
+                    writeln!(f, "#### {} Warnings (Before)", sim1_name)?;
                     for warn in old_warnings1 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化前)", sim2_name)?;
+                    writeln!(f, "#### {} Warnings (Before)", sim2_name)?;
                     for warn in old_warnings2 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化后)", sim1_name)?;
-                    writeln!(f, "- 无数据")?;
-                    writeln!(f, "#### {} 警告 (变化后)", sim2_name)?;
-                    writeln!(f, "- 无数据")?;
+                    writeln!(f, "#### {} Warnings (After)", sim1_name)?;
+                    writeln!(f, "- No data")?;
+                    writeln!(f, "#### {} Warnings (After)", sim2_name)?;
+                    writeln!(f, "- No data")?;
                 }
                 (None, Some((new_warnings1, new_warnings2))) => {
-                    writeln!(f, "#### {} 警告 (变化前)", sim1_name)?;
-                    writeln!(f, "- 无数据")?;
-                    writeln!(f, "#### {} 警告 (变化前)", sim2_name)?;
-                    writeln!(f, "- 无数据")?;
-                    writeln!(f, "#### {} 警告 (变化后)", sim1_name)?;
+                    writeln!(f, "#### {} Warnings (Before)", sim1_name)?;
+                    writeln!(f, "- No data")?;
+                    writeln!(f, "#### {} Warnings (Before)", sim2_name)?;
+                    writeln!(f, "- No data")?;
+                    writeln!(f, "#### {} Warnings (After)", sim1_name)?;
                     for warn in new_warnings1 {
                         writeln!(f, "- {}", warn)?;
                     }
-                    writeln!(f, "#### {} 警告 (变化后)", sim2_name)?;
+                    writeln!(f, "#### {} Warnings (After)", sim2_name)?;
                     for warn in new_warnings2 {
                         writeln!(f, "- {}", warn)?;
                     }
                 }
                 _ => {
-                    writeln!(f, "变化前: {:?}", ch.old)?;
-                    writeln!(f, "变化后: {:?}", ch.new)?;
+                    writeln!(f, "Before: {:?}", ch.old)?;
+                    writeln!(f, "After: {:?}", ch.new)?;
                 }
             }
         }
@@ -255,7 +255,7 @@ impl fmt::Display for ConversionStatsDiffDiff {
         writeln!(f, "---")?;
         writeln!(
             f,
-            "报告生成时间: {}",
+            "Report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 
@@ -348,11 +348,11 @@ impl RegistersDumpDiffDiff {
 
 impl fmt::Display for RegistersDumpDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "## 寄存器转储差异变化报告")?;
+        writeln!(f, "## Register Dump Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "寄存器转储差异无变化")?;
+            writeln!(f, "No changes in register dump differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -360,30 +360,30 @@ impl fmt::Display for RegistersDumpDiffDiff {
         let sim1_name = self.get_sim1_name();
         let sim2_name = self.get_sim2_name();
 
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        // 创建变化汇总表格
-        writeln!(f, "### 变化汇总")?;
+        // Create change summary table
+        writeln!(f, "### Change Summary")?;
         writeln!(f)?;
         writeln!(
             f,
-            "| 寄存器类型 | 变化前差异数 | 变化后差异数 | 净变化 | 变化趋势 |"
+            "| Register Type | Before Diff Count | After Diff Count | Net Change | Change Trend |"
         )?;
         writeln!(
             f,
-            "|:-----------|:------------:|:------------:|:------:|:--------:|"
+            "|:--------------|:-----------------:|:----------------:|:----------:|:------------:|"
         )?;
 
         if let Some(ch) = &self.int_registers_diff_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 整数寄存器 | {} | {} | {:+} | {} |",
+                "| Integer Registers | {} | {} | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -393,13 +393,13 @@ impl fmt::Display for RegistersDumpDiffDiff {
 
         if let Some(ch) = &self.core_csrs_diff_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 核心CSR | {} | {} | {:+} | {} |",
+                "| Core CSRs | {} | {} | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -409,13 +409,13 @@ impl fmt::Display for RegistersDumpDiffDiff {
 
         if let Some(ch) = &self.float_registers_diff_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 浮点寄存器 | {} | {} | {:+} | {} |",
+                "| Float Registers | {} | {} | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -431,13 +431,13 @@ impl fmt::Display for RegistersDumpDiffDiff {
                 (None, None) => (0, 0),
             };
             let trend = match (old_count, new_count) {
-                (0, 1) => "📈 新增",
-                (1, 0) => "消除",
-                _ => "不变",
+                (0, 1) => "📈 New",
+                (1, 0) => "📉 Resolved",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 浮点CSR | {} | {} | {:+} | {} |",
+                "| Float CSRs | {} | {} | {:+} | {} |",
                 old_count,
                 new_count,
                 new_count - old_count,
@@ -447,36 +447,36 @@ impl fmt::Display for RegistersDumpDiffDiff {
         writeln!(f)?;
 
         if let Some(ch) = &self.float_registers_status_changed_diff {
-            writeln!(f, "### 浮点寄存器状态变化")?;
+            writeln!(f, "### Float Register Status Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 状态 | {} 状态 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:--------:|:--------:|")?;
+            writeln!(f, "| Period | {} Status | {} Status |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:----------:|:----------:|")?;
             match (&ch.old, &ch.new) {
                 (Some((old_s1, old_s2)), Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 _ => {
-                    writeln!(f, "| 变化前 | {:?} | - |", ch.old)?;
-                    writeln!(f, "| 变化后 | {:?} | - |", ch.new)?;
+                    writeln!(f, "| Before | {:?} | - |", ch.old)?;
+                    writeln!(f, "| After | {:?} | - |", ch.new)?;
                 }
             }
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.float_csr_status_changed_diff {
-            writeln!(f, "### 浮点CSR状态变化")?;
+            writeln!(f, "### Float CSR Status Changes")?;
             writeln!(f)?;
-            writeln!(f, "| 时期 | {} 状态 | {} 状态 |", sim1_name, sim2_name)?;
-            writeln!(f, "|:-----|:--------:|:--------:|")?;
+            writeln!(f, "| Period | {} Status | {} Status |", sim1_name, sim2_name)?;
+            writeln!(f, "|:-------|:----------:|:----------:|")?;
             match (&ch.old, &ch.new) {
                 (Some((old_s1, old_s2)), Some((new_s1, new_s2))) => {
-                    writeln!(f, "| 变化前 | {} | {} |", old_s1, old_s2)?;
-                    writeln!(f, "| 变化后 | {} | {} |", new_s1, new_s2)?;
+                    writeln!(f, "| Before | {} | {} |", old_s1, old_s2)?;
+                    writeln!(f, "| After | {} | {} |", new_s1, new_s2)?;
                 }
                 _ => {
-                    writeln!(f, "| 变化前 | {:?} | - |", ch.old)?;
-                    writeln!(f, "| 变化后 | {:?} | - |", ch.new)?;
+                    writeln!(f, "| Before | {:?} | - |", ch.old)?;
+                    writeln!(f, "| After | {:?} | - |", ch.new)?;
                 }
             }
             writeln!(f)?;
@@ -535,11 +535,11 @@ impl ExceptionListDiffDiff {
 
 impl fmt::Display for ExceptionListDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "## 异常列表差异变化报告")?;
+        writeln!(f, "## Exception List Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "异常列表差异无变化")?;
+            writeln!(f, "No changes in exception list differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -547,30 +547,30 @@ impl fmt::Display for ExceptionListDiffDiff {
         let sim1_name = self.get_sim1_name();
         let sim2_name = self.get_sim2_name();
 
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        // 创建变化汇总表格
-        writeln!(f, "### 变化汇总")?;
+        // Create change summary table
+        writeln!(f, "### Change Summary")?;
         writeln!(f)?;
         writeln!(
             f,
-            "| 异常类型 | 变化前数量 | 变化后数量 | 净变化 | 变化趋势 |"
+            "| Exception Type | Before Count | After Count | Net Change | Change Trend |"
         )?;
         writeln!(
             f,
-            "|:---------|:----------:|:----------:|:------:|:--------:|"
+            "|:---------------|:------------:|:-----------:|:----------:|:------------:|"
         )?;
 
         if let Some(ch) = &self.list1_only_exceptions_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 仅 {} 异常 | {} | {} | {:+} | {} |",
+                "| {} Only Exceptions | {} | {} | {:+} | {} |",
                 sim1_name,
                 ch.old.len(),
                 ch.new.len(),
@@ -581,13 +581,13 @@ impl fmt::Display for ExceptionListDiffDiff {
 
         if let Some(ch) = &self.list2_only_exceptions_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 仅 {} 异常 | {} | {} | {:+} | {} |",
+                "| {} Only Exceptions | {} | {} | {:+} | {} |",
                 sim2_name,
                 ch.old.len(),
                 ch.new.len(),
@@ -598,13 +598,13 @@ impl fmt::Display for ExceptionListDiffDiff {
 
         if let Some(ch) = &self.paired_exceptions_diffs_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 配对异常差异 | {} | {} | {:+} | {} |",
+                "| Paired Exception Diffs | {} | {} | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -614,13 +614,13 @@ impl fmt::Display for ExceptionListDiffDiff {
 
         if let Some(ch) = &self.categorized_summary_changed {
             let trend = match (ch.old.len(), ch.new.len()) {
-                (old, new) if new > old => "📈 增加",
-                (old, new) if new < old => "减少",
-                _ => "不变",
+                (old, new) if new > old => "📈 Increased",
+                (old, new) if new < old => "📉 Decreased",
+                _ => "⏸️ Unchanged",
             };
             writeln!(
                 f,
-                "| 分类摘要 | {} | {} | {:+} | {} |",
+                "| Categorized Summary | {} | {} | {:+} | {} |",
                 ch.old.len(),
                 ch.new.len(),
                 ch.new.len() as i64 - ch.old.len() as i64,
@@ -629,7 +629,7 @@ impl fmt::Display for ExceptionListDiffDiff {
         }
         writeln!(f)?;
 
-        // 详细分析 - 只有在有显著变化时才显示
+        // Detailed analysis - only show when there are significant changes
         let has_significant_changes = self
             .list1_only_exceptions_changed
             .as_ref()
@@ -648,33 +648,33 @@ impl fmt::Display for ExceptionListDiffDiff {
                 .map_or(false, |ch| ch.old.len() != ch.new.len());
 
         if has_significant_changes {
-            writeln!(f, "### 详细变化分析")?;
+            writeln!(f, "### Detailed Change Analysis")?;
             writeln!(f)?;
 
             if let Some(ch) = &self.categorized_summary_changed {
                 if ch.old.len() != ch.new.len() {
-                    writeln!(f, "#### 分类摘要类别详情")?;
+                    writeln!(f, "#### Categorized Summary Category Details")?;
                     writeln!(f)?;
-                    writeln!(f, "| 时期 | 类别数量 | 类别概览 |")?;
-                    writeln!(f, "|:-----|:--------:|:---------|")?;
+                    writeln!(f, "| Period | Category Count | Category Overview |")?;
+                    writeln!(f, "|:-------|:--------------:|:------------------|")?;
                     writeln!(
                         f,
-                        "| 变化前 | {} | {} |",
+                        "| Before | {} | {} |",
                         ch.old.len(),
                         if ch.old.len() <= 3 {
-                            "少量类别"
+                            "Few categories"
                         } else {
-                            "多类别差异"
+                            "Multiple category differences"
                         }
                     )?;
                     writeln!(
                         f,
-                        "| 变化后 | {} | {} |",
+                        "| After | {} | {} |",
                         ch.new.len(),
                         if ch.new.len() <= 3 {
-                            "少量类别"
+                            "Few categories"
                         } else {
-                            "多类别差异"
+                            "Multiple category differences"
                         }
                     )?;
                     writeln!(f)?;
@@ -683,14 +683,14 @@ impl fmt::Display for ExceptionListDiffDiff {
         }
 
         if let Some(ch) = &self.sim1_emulator_type_changed {
-            writeln!(f, "### {} 模拟器类型变化", sim1_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim1_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.sim2_emulator_type_changed {
-            writeln!(f, "### {} 模拟器类型变化", sim2_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim2_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
@@ -780,11 +780,11 @@ impl Default for StandardExecutionOutputDiffDiff {
 
 impl fmt::Display for StandardExecutionOutputDiffDiff {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "# 标准执行输出差异变化报告")?;
+        writeln!(f, "# Standard Execution Output Diff Change Report")?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "标准执行输出差异无变化")?;
+            writeln!(f, "No changes in standard execution output differences")?;
             writeln!(f)?;
             return Ok(());
         }
@@ -792,63 +792,63 @@ impl fmt::Display for StandardExecutionOutputDiffDiff {
         let sim1_name = self.get_sim1_name();
         let sim2_name = self.get_sim2_name();
 
-        writeln!(f, "比较对象: {} ⚡ {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} ⚡ {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
-        writeln!(f, "## 变化详情")?;
+        writeln!(f, "## Change Details")?;
         writeln!(f)?;
 
-        // 模拟器类型变化
+        // Simulator type changes
         if let Some(ch) = &self.sim1_emulator_type_changed_diff {
-            writeln!(f, "### {} 模拟器类型变化", sim1_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim1_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
         if let Some(ch) = &self.sim2_emulator_type_changed_diff {
-            writeln!(f, "### {} 模拟器类型变化", sim2_name)?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### {} Simulator Type Change", sim2_name)?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
-        // 寄存器转储状态差异变化
+        // Register dump status difference changes
         if let Some(ch) = &self.register_dump_status_diff {
-            writeln!(f, "### 寄存器转储状态变化")?;
-            writeln!(f, "变化前: {:?}, 变化后: {:?}", ch.old, ch.new)?;
+            writeln!(f, "### Register Dump Status Changes")?;
+            writeln!(f, "Before: {:?}, After: {:?}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
-        // 寄存器转储存在状态变化
+        // Register dump presence status changes
         if let Some(ch) = &self.register_dump_diff_presence_changed {
-            writeln!(f, "### 寄存器转储存在状态变化")?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### Register Dump Presence Status Changes")?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
-        // 寄存器转储内容变化
+        // Register dump content changes
         if let Some(content_diff) = &self.register_dump_diff_content_diff {
-            writeln!(f, "### 寄存器转储内容变化")?;
+            writeln!(f, "### Register Dump Content Changes")?;
             writeln!(f, "{}", content_diff)?;
             writeln!(f)?;
         }
 
-        // 异常差异存在状态变化
+        // Exception difference presence status changes
         if let Some(ch) = &self.exceptions_diff_presence_changed {
-            writeln!(f, "### 异常差异存在状态变化")?;
-            writeln!(f, "变化前: {}, 变化后: {}", ch.old, ch.new)?;
+            writeln!(f, "### Exception Difference Presence Status Changes")?;
+            writeln!(f, "Before: {}, After: {}", ch.old, ch.new)?;
             writeln!(f)?;
         }
 
-        // 异常差异内容变化
+        // Exception difference content changes
         if let Some(content_diff) = &self.exceptions_diff_content_diff {
-            writeln!(f, "### 异常差异内容变化")?;
+            writeln!(f, "### Exception Difference Content Changes")?;
             writeln!(f, "{}", content_diff)?;
             writeln!(f)?;
         }
 
-        // 转换统计内容变化
+        // Conversion statistics content changes
         if let Some(content_diff) = &self.conversion_stats_diff_content_diff {
-            writeln!(f, "### 转换统计内容变化")?;
+            writeln!(f, "### Conversion Statistics Content Changes")?;
             writeln!(f, "{}", content_diff)?;
             writeln!(f)?;
         }
@@ -856,7 +856,7 @@ impl fmt::Display for StandardExecutionOutputDiffDiff {
         writeln!(f, "---")?;
         writeln!(
             f,
-            "报告生成时间: {}",
+            "Report generated at: {}",
             chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
         )?;
 

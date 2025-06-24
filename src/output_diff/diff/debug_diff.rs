@@ -26,32 +26,35 @@ impl fmt::Display for DebugExecutionOutputDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "# 调试执行输出差异报告")?;
+        writeln!(f, "# Debug Execution Output Diff Report")?;
         writeln!(f)?;
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "## 差异结果")?;
+            writeln!(f, "## Diff Result")?;
             writeln!(f)?;
-            writeln!(f, "未发现显著差异 - 两个模拟器的调试输出完全匹配！")?;
+            writeln!(
+                f,
+                "No significant differences found - debug outputs from both simulators match exactly!"
+            )?;
             writeln!(f)?;
             return Ok(());
         }
 
-        writeln!(f, "## 检测到差异")?;
+        writeln!(f, "## Differences Detected")?;
         writeln!(f)?;
 
-        // 差异汇总表格
+        // Diff Summary Table
         let mut diff_count = 0;
-        writeln!(f, "| 差异类型 | 数量 |")?;
+        writeln!(f, "| Diff Type | Count |")?;
         writeln!(f, "|----------|------|")?;
 
         if let Some((count1, count2)) = self.register_dumps_count_changed {
             diff_count += 1;
             writeln!(
                 f,
-                "| 有效寄存器转储数 | {}: {}, {}: {} |",
+                "| Valid Register Dumps | {}: {}, {}: {} |",
                 sim1_name, count1, sim2_name, count2
             )?;
         }
@@ -60,7 +63,7 @@ impl fmt::Display for DebugExecutionOutputDiff {
             diff_count += 1;
             writeln!(
                 f,
-                "| 寄存器内容 | {} 转储存在内容差异 |",
+                "| Register Content | {} dumps have content differences |",
                 self.differing_register_dumps.len()
             )?;
         }
@@ -69,22 +72,22 @@ impl fmt::Display for DebugExecutionOutputDiff {
             diff_count += 1;
             writeln!(
                 f,
-                "| 总转储标记数 | {}: {}, {}: {} |",
+                "| Total Dump Markers | {}: {}, {}: {} |",
                 sim1_name, total1, sim2_name, total2
             )?;
         }
 
         if diff_count == 0 {
-            writeln!(f, "| - | 无差异 |")?;
+            writeln!(f, "| - | No Differences |")?;
         }
         writeln!(f)?;
 
-        // 详细差异信息
-        writeln!(f, "## 详细差异分析")?;
+        // Detailed Diff Information
+        writeln!(f, "## Detailed Diff Analysis")?;
         writeln!(f)?;
 
         if let Some((count1, count2)) = self.register_dumps_count_changed {
-            writeln!(f, "### 有效寄存器转储数差异")?;
+            writeln!(f, "### Valid Register Dump Count Difference")?;
             writeln!(f)?;
             writeln!(f, "{}: {}", sim1_name, count1)?;
             writeln!(f, "{}: {}", sim2_name, count2)?;
@@ -101,9 +104,12 @@ impl fmt::Display for DebugExecutionOutputDiff {
                 } else {
                     0.0
                 };
-                writeln!(f, "#### 转储效率对比")?;
+                writeln!(f, "#### Dump Efficiency Comparison")?;
                 writeln!(f)?;
-                writeln!(f, "| 模拟器 | 有效转储 | 总标记 | 效率 |")?;
+                writeln!(
+                    f,
+                    "| Simulator | Valid Dumps | Total Markers | Efficiency |"
+                )?;
                 writeln!(f, "|--------|----------|--------|------|")?;
                 writeln!(
                     f,
@@ -120,17 +126,17 @@ impl fmt::Display for DebugExecutionOutputDiff {
         }
 
         if !self.differing_register_dumps.is_empty() {
-            writeln!(f, "### 寄存器内容差异")?;
+            writeln!(f, "### Register Content Differences")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "发现 {} 个转储存在差异:",
+                "Found {} dumps with differences:",
                 self.differing_register_dumps.len()
             )?;
             writeln!(f)?;
 
-            for (index, reg_diff) in &self.differing_register_dumps {
-                writeln!(f, "#### 转储索引 {}", index)?;
+            for (i, (index, reg_diff)) in self.differing_register_dumps.iter().enumerate() {
+                writeln!(f, "#### Dump Index {} (#{} in sequence)", index, i + 1)?;
                 writeln!(f)?;
                 // Assuming RegistersDumpDiff::fmt is cleaned
                 writeln!(f, "{}", reg_diff)?;
@@ -139,20 +145,13 @@ impl fmt::Display for DebugExecutionOutputDiff {
         }
 
         if let Some((total1, total2)) = self.total_dumps_changed {
-            writeln!(f, "### 总转储标记数差异")?;
+            writeln!(f, "### Total Dump Marker Count Difference")?;
             writeln!(f)?;
             writeln!(f, "{}: {}", sim1_name, total1)?;
             writeln!(f, "{}: {}", sim2_name, total2)?;
-            writeln!(f, "差异: {}", (total2 as i64 - total1 as i64).abs())?;
+            writeln!(f, "Difference: {}", (total2 as i64 - total1 as i64).abs())?;
             writeln!(f)?;
         }
-
-        writeln!(f, "---")?;
-        writeln!(
-            f,
-            "调试差异报告生成时间: {}",
-            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
-        )?;
 
         Ok(())
     }

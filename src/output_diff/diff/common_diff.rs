@@ -33,62 +33,65 @@ impl fmt::Display for CommonExecutionOutputDiff {
         let sim1_name = self.sim1_emulator_type.to_string();
         let sim2_name = self.sim2_emulator_type.to_string();
 
-        writeln!(f, "# 通用执行输出差异报告")?;
+        writeln!(f, "# Common Execution Output Diff Report")?;
         writeln!(f)?;
-        writeln!(f, "比较对象: {} vs {}", sim1_name, sim2_name)?;
+        writeln!(f, "Comparison: {} vs {}", sim1_name, sim2_name)?;
         writeln!(f)?;
 
         if self.is_empty() {
-            writeln!(f, "## 差异结果")?;
+            writeln!(f, "## Diff Result")?;
             writeln!(f)?;
-            writeln!(f, "未发现显著差异 - 两个模拟器的输出完全匹配！")?;
+            writeln!(
+                f,
+                "No significant differences found - outputs from both simulators match exactly!"
+            )?;
             writeln!(f)?;
             return Ok(());
         }
 
-        writeln!(f, "## 检测到差异")?;
+        writeln!(f, "## Differences Detected")?;
         writeln!(f)?;
 
-        // 差异汇总表格
+        // Diff Summary Table
         let mut diff_count = 0;
-        writeln!(f, "| 差异类型 | 数量 |")?;
+        writeln!(f, "| Diff Type | Count |")?;
         writeln!(f, "|----------|------|")?;
 
         if self.register_dumps_count_changed.is_some() {
             diff_count += 1;
-            writeln!(f, "| 寄存器转储数量 | 转储数量不匹配 |")?;
+            writeln!(f, "| Register Dump Count | Count Mismatch |")?;
         }
 
         if !self.differing_register_dumps.is_empty() {
             diff_count += 1;
             writeln!(
                 f,
-                "| 寄存器内容 | 有 {} 寄存器转储存在内容差异 |",
+                "| Register Content | {} register dumps have content differences |",
                 self.differing_register_dumps.len()
             )?;
         }
 
         if self.output_items_status.is_some() {
             diff_count += 1;
-            writeln!(f, "| 输出项状态 | 项目数量或内容存在差异 |")?;
+            writeln!(f, "| Output Item Status | Item count or content differs |")?;
         }
 
         if self.exception_dumps_diff.is_some() {
             diff_count += 1;
-            writeln!(f, "| 异常转储 | 异常信息存在差异 |")?;
+            writeln!(f, "| Exception Dumps | Exception information differs |")?;
         }
 
         if diff_count == 0 {
-            writeln!(f, "| - | 无差异 |")?;
+            writeln!(f, "| - | No Differences |")?;
         }
         writeln!(f)?;
 
-        // 详细差异信息
-        writeln!(f, "## 详细差异分析")?;
+        // Detailed Diff Information
+        writeln!(f, "## Detailed Diff Analysis")?;
         writeln!(f)?;
 
         if let Some((count1, count2)) = self.register_dumps_count_changed {
-            writeln!(f, "### 寄存器转储数量差异")?;
+            writeln!(f, "### Register Dump Count Difference")?;
             writeln!(f)?;
             writeln!(f, "{}: {}", sim1_name, count1)?;
             writeln!(f, "{}: {}", sim2_name, count2)?;
@@ -96,17 +99,17 @@ impl fmt::Display for CommonExecutionOutputDiff {
         }
 
         if !self.differing_register_dumps.is_empty() {
-            writeln!(f, "### 寄存器内容差异")?;
+            writeln!(f, "### Register Content Differences")?;
             writeln!(f)?;
             writeln!(
                 f,
-                "发现 {} 个转储存在差异:",
+                "Found {} dumps with differences:",
                 self.differing_register_dumps.len()
             )?;
             writeln!(f)?;
 
-            for (index, reg_diff) in &self.differing_register_dumps {
-                writeln!(f, "#### 转储索引 {}", index)?;
+            for (i, (index, reg_diff)) in self.differing_register_dumps.iter().enumerate() {
+                writeln!(f, "#### Dump Index {} (#{} in sequence)", index, i + 1)?;
                 writeln!(f)?;
                 // Assuming RegistersDumpDiff::fmt is cleaned
                 writeln!(f, "{}", reg_diff)?;
@@ -115,28 +118,21 @@ impl fmt::Display for CommonExecutionOutputDiff {
         }
 
         if let Some(status) = &self.output_items_status {
-            writeln!(f, "### 输出项状态差异")?;
+            writeln!(f, "### Output Item Status Difference")?;
             writeln!(f)?;
-            writeln!(f, "状态: {}", status)?;
+            writeln!(f, "Status: {}", status)?;
             writeln!(f)?;
         }
 
         if let Some(ex_diff) = &self.exception_dumps_diff {
             if !ex_diff.is_empty() {
-                writeln!(f, "### 异常转储差异")?;
+                writeln!(f, "### Exception Dump Differences")?;
                 writeln!(f)?;
                 // Assuming ExceptionListDiff::fmt is cleaned
                 writeln!(f, "{}", ex_diff)?;
                 writeln!(f)?;
             }
         }
-
-        writeln!(f, "---")?;
-        writeln!(
-            f,
-            "差异报告生成时间: {}",
-            chrono::Utc::now().format("%Y-%m-%d %H:%M:%S UTC")
-        )?;
 
         Ok(())
     }
@@ -157,7 +153,7 @@ pub fn compare_execution_outputs(
 
     if output1.output_items.len() != output2.output_items.len() {
         diff.output_items_status = Some(format!(
-            "{}有{}个项，{}有{}个项",
+            "{} has {} items, {} has {} items",
             output1.emulator_type,
             output1.output_items.len(),
             output2.emulator_type,
@@ -175,7 +171,7 @@ pub fn compare_execution_outputs(
         }
         if items_differ {
             diff.output_items_status = Some(format!(
-                "{}与{}的输出项内容存在差异",
+                "Output items differ between {} and {}",
                 output1.emulator_type, output2.emulator_type
             ));
         }
