@@ -55,20 +55,30 @@ fn get_macro_definitions() -> &'static str {
 .macro SAVE_T_REGS save_area_label
     csrw mscratch, t6
     la   t6, \save_area_label
-    sd   t0,   0(t6); sd   t1,   8(t6); sd   t2,  16(t6)
-    sd   t3,  24(t6); sd   t4,  32(t6); sd   t5,  40(t6)
+
+    sd   t0,   0(t6)
+    sd   t1,   8(t6)
+    sd   t2,  16(t6)
+    sd   t3,  24(t6)
+    sd   t4,  32(t6)
+    sd   t5,  40(t6)
+
     csrr t5, mscratch
     sd   t5,  48(t6)
+
+    ld   t5,  40(t6)
     csrr t6, mscratch
 .endm
 
 .macro RESTORE_T_REGS save_area_label
-    csrw mscratch, t6
     la   t6, \save_area_label
-    ld   t0,   0(t6); ld   t1,   8(t6); ld   t2,  16(t6)
-    ld   t3,  24(t6); ld   t4,  32(t6); ld   t5,  40(t6)
+    ld   t0,   0(t6)
+    ld   t1,   8(t6)
+    ld   t2,  16(t6)
+    ld   t3,  24(t6)
+    ld   t4,  32(t6)
+    ld   t5,  40(t6)
     ld   t6,  48(t6)
-    csrr t6, mscratch
 .endm
 
 # ----------------------------------------------------------------------------
@@ -313,23 +323,24 @@ infinite_exit_loop_\@: j infinite_exit_loop_\@
     csrwi medeleg, 0
     csrwi mideleg, 0
 
-    # Physical Memory Protection (PMP) related (disable all PMP regions to provide full access)
-    # Clear first 16 PMP address registers (this is safe as unimplemented registers read as 0, writes are ignored)
-    csrw pmpaddr0, x0; csrw pmpaddr1, x0; csrw pmpaddr2, x0; csrw pmpaddr3, x0
-    csrw pmpaddr4, x0; csrw pmpaddr5, x0; csrw pmpaddr6, x0; csrw pmpaddr7, x0
-    csrw pmpaddr8, x0; csrw pmpaddr9, x0; csrw pmpaddr10, x0; csrw pmpaddr11, x0
-    csrw pmpaddr12, x0; csrw pmpaddr13, x0; csrw pmpaddr14, x0; csrw pmpaddr15, x0
-    # Clear PMP configuration registers according to architecture width
-    # In RV64 pmpcfg registers are even-numbered, in RV32 they are consecutive
-    #if __riscv_xlen == 64
-    csrw pmpcfg0, x0 # Covers pmp0-7 configuration
-    csrw pmpcfg2, x0 # Covers pmp8-15 configuration
-    #else # Default to __riscv_xlen == 32
-    csrw pmpcfg0, x0 # Covers pmp0-3 configuration
-    csrw pmpcfg1, x0 # Covers pmp4-7 configuration
-    csrw pmpcfg2, x0 # Covers pmp8-11 configuration
-    csrw pmpcfg3, x0 # Covers pmp12-15 configuration
-    #endif 
+    # Comment and uncomment has the same results
+    # # Physical Memory Protection (PMP) related (disable all PMP regions to provide full access)
+    # # Clear first 16 PMP address registers (this is safe as unimplemented registers read as 0, writes are ignored)
+    # csrw pmpaddr0, x0; csrw pmpaddr1, x0; csrw pmpaddr2, x0; csrw pmpaddr3, x0
+    # csrw pmpaddr4, x0; csrw pmpaddr5, x0; csrw pmpaddr6, x0; csrw pmpaddr7, x0
+    # csrw pmpaddr8, x0; csrw pmpaddr9, x0; csrw pmpaddr10, x0; csrw pmpaddr11, x0
+    # csrw pmpaddr12, x0; csrw pmpaddr13, x0; csrw pmpaddr14, x0; csrw pmpaddr15, x0
+    # # Clear PMP configuration registers according to architecture width
+    # # In RV64 pmpcfg registers are even-numbered, in RV32 they are consecutive
+    # #if __riscv_xlen == 64
+    # csrw pmpcfg0, x0 # Covers pmp0-7 configuration
+    # csrw pmpcfg2, x0 # Covers pmp8-15 configuration
+    # #else # Default to __riscv_xlen == 32
+    # csrw pmpcfg0, x0 # Covers pmp0-3 configuration
+    # csrw pmpcfg1, x0 # Covers pmp4-7 configuration
+    # csrw pmpcfg2, x0 # Covers pmp8-11 configuration
+    # csrw pmpcfg3, x0 # Covers pmp12-15 configuration
+    # #endif 
 
     # Performance counters (HPM)
     csrwi mcounteren, 0

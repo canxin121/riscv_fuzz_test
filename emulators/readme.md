@@ -1,23 +1,23 @@
 ## rocket_emulator
 
-由 https://github.com/chipsalliance/rocket-chip 自定义配置的MaxExtension RV64生成
+Generated from https://github.com/chipsalliance/rocket-chip, commit f517abbf41abb65cea37421d3559f9739efd00a9,with custom MaxExtension RV64 configuration
 
 ```scala
 class MaxExtensionRV64Config extends Config(
-  new WithB ++           // Bitmanip扩展
-  new WithFP16 ++        // 半精度浮点扩展
-  new WithHypervisor ++  // 虚拟化扩展
-  new DefaultConfig      // 基础配置（RV64IMAFDC + 1个大核心）
+  new WithB ++           // Bitmanip extension
+  new WithFP16 ++        // Half-precision floating-point extension
+  new WithHypervisor ++  // Hypervisor extension
+  new DefaultConfig      // Base configuration (RV64IMAFDC + 1 big core)
 )
 
-// RV32版本的最大扩展配置
+// RV32 version of maximum extension configuration
 class MaxExtensionRV32Config extends Config(
-  new WithB ++           // Bitmanip扩展
-  new WithFP16 ++        // 半精度浮点扩展
-  new WithHypervisor ++  // 虚拟化扩展
-  new WithRV32 ++        // 32位RISC-V
+  new WithB ++           // Bitmanip extension
+  new WithFP16 ++        // Half-precision floating-point extension
+  new WithHypervisor ++  // Hypervisor extension
+  new WithRV32 ++        // 32-bit RISC-V
   new WithNBigCores(1) ++ 
   new WithCoherentBusTopology ++ 
   new BaseConfig
 )
-```
+``` 
